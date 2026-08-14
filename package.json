@@ -1,0 +1,30 @@
+{
+  "name": "ai-lab",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "verify": "tsx src/core/search/verify.ts",
+    "smoke": "tsx --tsconfig tsconfig.app.json src/smoke.tsx",
+    "check": "npm run verify && npm run smoke && npm run build",
+    "lint": "oxlint"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "oxlint": "^1.75.0",
+    "tsx": "^4.23.12",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.0"
+  },
+  "description": "AI LAB — 고등학교 「인공지능 기초」 교과 연계 상호작용형 가상 실험실 (MVP 1 · 탐색 실험실)"
+}
