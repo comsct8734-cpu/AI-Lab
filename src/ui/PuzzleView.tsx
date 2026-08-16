@@ -94,58 +94,68 @@ interface TreeProps {
 export function PuzzleTreeView({ step, method, rootKey }: TreeProps) {
   if (!step) return <svg viewBox={`0 0 ${TW} ${TH}`} />;
 
-  // 부모-자식 관계로 깊이별 노드를 모은다
+  // 부모-자식 관계. 먼저 만들어진 순서를 그대로 유지한다.
   const parentOf = new Map<string, string>();
-  for (const e of step.edges) if (!parentOf.has(e.to)) parentOf.set(e.to, e.from);
-
-  const depthOf = (key: string): number => {
-    let d = 0;
-    let cur = key;
-    while (parentOf.has(cur) && d < 20) {
-      cur = parentOf.get(cur)!;
-      d += 1;
-    }
-    return d;
-  };
-
-  const all = new Set<string>([rootKey]);
+  const childrenOf = new Map<string, string[]>();
   for (const e of step.edges) {
-    all.add(e.from);
-    all.add(e.to);
+    if (parentOf.has(e.to) || e.to === rootKey) continue;
+    parentOf.set(e.to, e.from);
+    const list = childrenOf.get(e.from) ?? [];
+    list.push(e.to);
+    childrenOf.set(e.from, list);
   }
 
-  const levels: string[][] = [];
-  for (const key of all) {
-    const d = depthOf(key);
-    if (d > MAX_DEPTH) continue;
-    (levels[d] ??= []).push(key);
+  /**
+   * 한 층씩 내려가며 노드 순서를 정한다.
+   *
+   * 여기서 상태 문자열로 정렬하면(예전 방식) 부모가 다른 노드끼리 뒤섞여
+   * 선이 교차하고 번호도 뒤죽박죽으로 보인다.
+   * 부모 순서대로, 그 안에서는 만들어진 순서대로 놓아야
+   * 왼쪽에서 오른쪽으로 읽는 순서가 탐색 순서와 맞는다. (교과서 31쪽)
+   */
+  const levels: string[][] = [[rootKey]];
+  for (let d = 0; d < MAX_DEPTH; d++) {
+    const next: string[] = [];
+    for (const parent of levels[d]) {
+      for (const child of childrenOf.get(parent) ?? []) next.push(child);
+    }
+    if (next.length === 0) break;
+    levels.push(next);
   }
-  for (const l of levels) l?.sort();
+
+  const placed = new Set(levels.flat());
+  const totalNodes = new Set<string>([rootKey, ...step.edges.map((e) => e.to)]).size;
+  const hidden = totalNodes - placed.size;
 
   const orderIndex = new Map<string, number>();
   step.order.forEach((k, i) => orderIndex.set(k, i + 1));
   const closedKeys = new Set(step.closed.map((e) => e.key));
   const openKeys = new Set(step.open.map((e) => e.key));
-  const entryOf = new Map(
-    [...step.closed, ...step.open].map((e) => [e.key, e] as const),
-  );
+  const entryOf = new Map([...step.closed, ...step.open].map((e) => [e.key, e] as const));
   const pathKeys = new Set(step.path?.map((e) => e.key) ?? []);
 
+  // 한 층에 노드가 많아지면 화면을 넓히고 좌우로 스크롤한다.
+  // 억지로 밀어 넣으면 원이 겹쳐서 오히려 읽을 수 없다.
+  const widest = Math.max(...levels.map((l) => l.length));
+  const W = Math.max(TW, widest * 58);
+
   const coords = new Map<string, { x: number; y: number }>();
-  const levelCount = levels.length || 1;
   levels.forEach((nodes, d) => {
-    if (!nodes) return;
-    const y = 40 + (d * (TH - 90)) / Math.max(1, levelCount - 1 || 1);
+    const y = 40 + (d * (TH - 92)) / Math.max(1, MAX_DEPTH);
     nodes.forEach((key, i) => {
-      const x = ((i + 1) * TW) / (nodes.length + 1);
-      coords.set(key, { x, y });
+      coords.set(key, { x: ((i + 1) * W) / (nodes.length + 1), y });
     });
   });
 
-  const hidden = all.size - coords.size;
-
   return (
-    <svg viewBox={`0 0 ${TW} ${TH}`} role="img" aria-label="8퍼즐 탐색 트리">
+    <svg
+      viewBox={`0 0 ${W} ${TH}`}
+      width={W}
+      height={TH}
+      role="img"
+      aria-label="8퍼즐 탐색 트리"
+      style={{ display: 'block', maxWidth: 'none' }}
+    >
       <title>지금까지 만들어진 탐색 트리</title>
 
       {step.edges.map((e, i) => {
@@ -221,12 +231,12 @@ export function PuzzleTreeView({ step, method, rootKey }: TreeProps) {
       })}
 
       {hidden > 0 && (
-        <text x={TW - 12} y={TH - 10} textAnchor="end" fontSize={12} fill="#7e8b87">
-          깊이 {MAX_DEPTH}까지만 표시 · 화면 밖 노드 {hidden}개
+        <text x={W - 12} y={TH - 10} textAnchor="end" fontSize={12} fill="#7e8b87">
+          깊이 {MAX_DEPTH}까지만 표시 · 더 아래의 노드 {hidden}개는 그리지 않았습니다
         </text>
       )}
       <text x={12} y={TH - 10} fontSize={12} fill="#4c5a56">
-        번호는 테스트한 순서입니다
+        번호는 테스트한 순서 · 왼쪽에서 오른쪽으로 읽습니다
       </text>
     </svg>
   );

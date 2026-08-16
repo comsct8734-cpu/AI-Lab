@@ -17,6 +17,16 @@ export const LEARN_MODE_LABEL: Record<LearnMode, string> = {
   challenge: '도전 과제',
 };
 
+export const LEARN_MODE_HELP: Record<LearnMode, string> = {
+  free: '모든 설정을 자유롭게 바꾸며 실험합니다. 평소에는 이 상태로 두시면 됩니다.',
+  guided:
+    '아래 ① 예상하기를 고르기 전에는 실행 버튼이 잠깁니다. 학생이 결과를 먼저 보고 나서 예상을 맞춰 쓰는 것을 막기 위한 모드입니다.',
+  challenge: '조건만 주고 학생이 스스로 방법을 고르는 모드입니다. (MVP 6에서 추가됩니다)',
+};
+
+/** 지금 고를 수 있는 모드. 도전 과제는 MVP 6에서 열린다. */
+const AVAILABLE_MODES: LearnMode[] = ['free', 'guided'];
+
 interface Props {
   title: string;
   textbook: string;
@@ -41,6 +51,7 @@ export function ExperimentFrame({
   // 좁은 화면에서 데이터 패널을 접는다. 기본은 접힌 상태.
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [narrow, setNarrow] = useState(false);
+  const [modeHelp, setModeHelp] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 1023px)');
@@ -68,8 +79,9 @@ export function ExperimentFrame({
           </button>
         )}
         <div className="exp-head__right">
+          <span className="exp-head__modelabel">학습 모드</span>
           <div className="segmented" role="group" aria-label="학습 모드">
-            {(['free', 'guided', 'challenge'] as LearnMode[]).map((m) => (
+            {AVAILABLE_MODES.map((m) => (
               <button
                 key={m}
                 type="button"
@@ -81,9 +93,26 @@ export function ExperimentFrame({
               </button>
             ))}
           </div>
+          <button
+            type="button"
+            className="help-btn"
+            onClick={() => setModeHelp((v) => !v)}
+            aria-expanded={modeHelp}
+            aria-label={`학습 모드 설명 ${modeHelp ? '닫기' : '열기'}`}
+          >
+            ?
+          </button>
         </div>
       </div>
 
+      {modeHelp && (
+        <div className="mode-help">
+          <strong>{LEARN_MODE_LABEL[mode]}</strong> — {LEARN_MODE_HELP[mode]}
+          <button type="button" className="btn btn--small" onClick={() => setModeHelp(false)}>
+            닫기
+          </button>
+        </div>
+      )}
       <div className={`exp-body${drawerOpen ? ' drawer-open' : ''}`}>
         <aside className={`pane pane--data${collapsed ? ' is-collapsed' : ''}`}>
           {dataPane}

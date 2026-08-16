@@ -192,6 +192,59 @@ section('11. 되돌리기 — 단계 배열의 인덱스만 줄이면 된다');
 }
 
 // ─────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────
+section('12. 8퍼즐 탐색 트리의 층별 순서 — 부모 순서대로 놓이는가');
+// 상태 문자열로 정렬하면 부모가 다른 노드끼리 뒤섞여 선이 교차한다.
+// 부모 순서 → 만들어진 순서로 놓아야 왼쪽에서 오른쪽으로 읽는 순서가 탐색 순서와 맞는다.
+{
+  const { steps } = collectSteps(makePuzzleProblem(PUZZLE_START), 'bfs', {
+    maxExpanded: 40,
+  });
+  const last = steps[steps.length - 1];
+
+  const parentOf = new Map<string, string>();
+  const childrenOf = new Map<string, string[]>();
+  const root = PUZZLE_START.join('');
+  for (const e of last.edges) {
+    if (parentOf.has(e.to) || e.to === root) continue;
+    parentOf.set(e.to, e.from);
+    const list = childrenOf.get(e.from) ?? [];
+    list.push(e.to);
+    childrenOf.set(e.from, list);
+  }
+
+  const levels: string[][] = [[root]];
+  for (let d = 0; d < 3; d++) {
+    const next: string[] = [];
+    for (const p of levels[d]) for (const c of childrenOf.get(p) ?? []) next.push(c);
+    if (next.length === 0) break;
+    levels.push(next);
+  }
+
+  check('층 수', levels.length, 4);
+  check('깊이 1의 노드 수 (빈칸이 아래 가운데 → 위·왼쪽·오른쪽)', levels[1].length, 3);
+
+  // 같은 부모의 자식들이 붙어 있어야 한다 = 부모별로 한 덩어리
+  const contiguous = (level: string[]) => {
+    const seen: string[] = [];
+    for (const k of level) {
+      const p = parentOf.get(k)!;
+      if (seen[seen.length - 1] !== p) {
+        if (seen.includes(p)) return false; // 떨어져 나타나면 교차가 생긴다
+        seen.push(p);
+      }
+    }
+    return true;
+  };
+  check('깊이 2에서 형제가 붙어 있는가', contiguous(levels[2]), true);
+  check('깊이 3에서 형제가 붙어 있는가', contiguous(levels[3]), true);
+
+  // 예전 방식(상태 문자열 정렬)과 실제로 달라야 한다
+  const sorted = [...levels[3]].sort();
+  check('상태 문자열 정렬과 다른 순서인가', JSON.stringify(levels[3]) !== JSON.stringify(sorted), true);
+}
+
 console.log(`\n${'═'.repeat(64)}`);
 console.log(`통과 ${pass}개 · 실패 ${fail}개`);
 console.log('═'.repeat(64));

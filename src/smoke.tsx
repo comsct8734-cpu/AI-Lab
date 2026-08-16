@@ -87,9 +87,46 @@ const guided = render(
   '1-2 (안내 실험 모드)',
   <SearchLabScreen method="bfs" mode="guided" onModeChange={noop} teacherMode={false} />,
 );
-check('예상 먼저 안내 문구', guided.includes('먼저 고른 뒤에 실행'));
+check('예상 먼저 안내 문구', guided.includes('안내 실험 모드입니다'));
 
 console.log(`\n${'═'.repeat(64)}`);
 console.log(`통과 ${pass}개 · 실패 ${fail}개`);
 console.log('═'.repeat(64));
 if (fail > 0) process.exitCode = 1;
+
+/* ── 이번 수정분 점검 ─────────────────────────────────────── */
+console.log('\n수정분 점검');
+console.log('─'.repeat(64));
+
+const teacherBfs = renderToString(
+  <SearchLabScreen method="bfs" mode="free" onModeChange={noop} teacherMode />,
+);
+check('교사용에 예시 답안 표시', teacherBfs.includes('예시 답안'));
+check('① 예상하기 예시 답안', teacherBfs.includes('4~5개'));
+check('⑤ 설명하기 예시 답안', teacherBfs.includes('비용을 전혀 보지 않고'));
+check('학생 입력란 표시', teacherBfs.includes('이 기기의 입력'));
+check('학생 입력 없을 때 안내', teacherBfs.includes('학생 각자의 답변은 그 학생의 기기에만'));
+
+const teacherAstar = renderToString(
+  <SearchLabScreen method="astar" mode="free" onModeChange={noop} teacherMode />,
+);
+check('A* 휴리스틱 예시 답안', teacherAstar.includes('균일 비용 탐색이 됩니다'));
+
+const studentBfs = renderToString(
+  <SearchLabScreen method="bfs" mode="free" onModeChange={noop} teacherMode={false} />,
+);
+check('학생 화면에는 예시 답안 없음', !studentBfs.includes('예시 답안'));
+check('학생 화면에 교사용 켜는 버튼 없음', !studentBfs.includes('교사용 보기'));
+check('도전 과제 버튼 감춤', !studentBfs.includes('도전 과제'));
+check('학습 모드 라벨 표시', studentBfs.includes('학습 모드'));
+
+const guidedLock = renderToString(
+  <SearchLabScreen method="ucs" mode="guided" onModeChange={noop} teacherMode={false} />,
+);
+check('잠금 안내가 실행 버튼 옆에', guidedLock.includes('안내 실험 모드입니다'));
+check('예상하기로 이동 버튼', guidedLock.includes('예상하기로 이동'));
+check('자유 실험으로 전환 버튼', guidedLock.includes('자유 실험으로'));
+
+console.log(`\n${'═'.repeat(64)}`);
+console.log(`최종 · 통과 ${pass}개 · 실패 ${fail}개`);
+console.log('═'.repeat(64));

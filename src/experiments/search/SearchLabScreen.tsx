@@ -256,11 +256,13 @@ export function SearchLabScreen({ method, mode, onModeChange, teacherMode }: Pro
             onSelectNode={setSelectedNode}
           />
         ) : (
-          <PuzzleTreeView
-            step={puzzleRun.step}
-            method={method}
-            rootKey={puzzleKey(PUZZLE_START)}
-          />
+          <div className="tree-scroll">
+            <PuzzleTreeView
+              step={puzzleRun.step}
+              method={method}
+              rootKey={puzzleKey(PUZZLE_START)}
+            />
+          </div>
         )}
       </div>
 
@@ -347,9 +349,29 @@ export function SearchLabScreen({ method, mode, onModeChange, teacherMode }: Pro
       />
 
       {!canRun && (
-        <p className="locked-note">
-          안내 실험에서는 아래 ① 예상하기를 먼저 고른 뒤에 실행할 수 있습니다.
-        </p>
+        <div className="lock-note">
+          <strong>안내 실험 모드입니다.</strong>
+          <p>
+            아래 <strong>① 예상하기</strong>에서 결과를 먼저 예상해야 실행할 수 있습니다.
+            결과를 보고 나서 예상을 맞춰 쓰는 것을 막기 위한 장치입니다.
+          </p>
+          <div className="btn-row">
+            <button
+              type="button"
+              className="btn btn--small btn--primary"
+              onClick={() =>
+                document
+                  .getElementById('inquiry')
+                  ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }
+            >
+              예상하기로 이동
+            </button>
+            <button type="button" className="btn btn--small" onClick={() => onModeChange('free')}>
+              자유 실험으로
+            </button>
+          </div>
+        </div>
       )}
 
       {kind === 'city' && method !== 'bfs' && (
@@ -563,6 +585,7 @@ export function SearchLabScreen({ method, mode, onModeChange, teacherMode }: Pro
         <TeacherPanel
           note={TEACHER_NOTES[method]}
           extra={[SEARCH_LAB_COMMON.data, SEARCH_LAB_COMMON.order]}
+          inquiry={INQUIRY[method]}
         />
       )}
 

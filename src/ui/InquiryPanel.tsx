@@ -43,7 +43,7 @@ export function InquiryPanel({ spec, mode, hasRun }: Props) {
   const explained = explain.trim().length >= 10;
 
   return (
-    <section className="section-card">
+    <section className="section-card" id="inquiry">
       <h2>결과 및 생각하기</h2>
 
       <div className="inquiry-step">

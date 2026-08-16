@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { ExperimentFrame, type LearnMode } from '../../ui/ExperimentFrame';
 import { PuzzleBoard } from '../../ui/PuzzleView';
 import { SettingRow } from '../../ui/controls';
-import { InquiryPanel } from '../../ui/InquiryPanel';
+import { InquiryPanel, type InquirySpec } from '../../ui/InquiryPanel';
 import { TeacherPanel } from '../../ui/TeacherPanel';
 import { SEARCH_LAB_COMMON, TEACHER_NOTES } from '../../teacher/searchTeacher';
 import { usePersisted } from '../../usePersisted';
@@ -25,6 +25,25 @@ import {
  * 알고리즘을 배우기 전에 상태 · 간선 · 트리라는 표현 방식을 먼저 경험하게 한다.
  * 학생이 직접 빈칸을 움직이고, 자식 상태를 눌러 트리를 한 층씩 펼친다.
  */
+
+/** 이 화면의 탐구 질문. 학생 화면과 교사용 보기가 같은 것을 쓴다. */
+const PROBLEM_TREE_INQUIRY: InquirySpec = {
+  id: 'problem-tree',
+  predictQuestion: '한 상태에서 만들어지는 자식 상태는 항상 4개일까요?',
+  predictChoices: ['항상 4개다', '4개보다 적을 때가 있다', '4개보다 많을 때가 있다'],
+  observeQuestion:
+    '빈칸을 여러 위치로 옮겨 보면서, 자식 상태의 개수가 언제 달라지는지 적어 보세요.',
+  explainQuestion: '자식 상태의 개수가 달라지는 이유는 무엇인가요?',
+  questions: [
+    '타일 8개를 각각 옮기는 것으로도 간선을 정의할 수 있는데, 교과서는 왜 빈칸의 이동으로 정의했을까? (29쪽)',
+    '깊이 3까지만 펼쳐도 상태가 몇 개나 되는가? 이것이 34쪽의 9! = 362,880과 어떻게 연결되는가?',
+    '초기 상태를 다른 모양으로 바꾸면 목표까지 가는 경로의 길이도 달라질까?',
+  ],
+  finding:
+    '문제를 탐색으로 풀려면 먼저 상태와 간선을 정하고 트리로 표현해야 한다. ' +
+    '같은 문제라도 간선을 어떻게 정의하느냐에 따라 만들어지는 트리의 모양이 달라진다. ' +
+    '빈칸의 이동으로 정의하면 타일마다 정의할 때보다 간선의 종류가 훨씬 줄어든다.',
+};
 
 interface Props {
   mode: LearnMode;
@@ -293,31 +312,10 @@ export function ProblemTreeScreen({ mode, onModeChange, teacherMode }: Props) {
         <TeacherPanel
           note={TEACHER_NOTES['problem-tree']}
           extra={[SEARCH_LAB_COMMON.order]}
+          inquiry={PROBLEM_TREE_INQUIRY}
         />
       )}
-      <InquiryPanel
-        mode={mode}
-        hasRun={expanded.length > 0}
-        spec={{
-          id: 'problem-tree',
-          predictQuestion:
-            '한 상태에서 만들어지는 자식 상태는 항상 4개일까요?',
-          predictChoices: ['항상 4개다', '4개보다 적을 때가 있다', '4개보다 많을 때가 있다'],
-          observeQuestion:
-            '빈칸을 여러 위치로 옮겨 보면서, 자식 상태의 개수가 언제 달라지는지 적어 보세요.',
-          explainQuestion:
-            '자식 상태의 개수가 달라지는 이유는 무엇인가요?',
-          questions: [
-            '타일 8개를 각각 옮기는 것으로도 간선을 정의할 수 있는데, 교과서는 왜 빈칸의 이동으로 정의했을까? (29쪽)',
-            '깊이 3까지만 펼쳐도 상태가 몇 개나 되는가? 이것이 34쪽의 9! = 362,880과 어떻게 연결되는가?',
-            '초기 상태를 다른 모양으로 바꾸면 목표까지 가는 경로의 길이도 달라질까?',
-          ],
-          finding:
-            '문제를 탐색으로 풀려면 먼저 상태와 간선을 정하고 트리로 표현해야 한다. ' +
-            '같은 문제라도 간선을 어떻게 정의하느냐에 따라 만들어지는 트리의 모양이 달라진다. ' +
-            '빈칸의 이동으로 정의하면 타일마다 정의할 때보다 간선의 종류가 훨씬 줄어든다.',
-        }}
-      />
+      <InquiryPanel mode={mode} hasRun={expanded.length > 0} spec={PROBLEM_TREE_INQUIRY} />
     </>
   );
 

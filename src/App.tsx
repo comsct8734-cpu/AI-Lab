@@ -26,6 +26,21 @@ export default function App() {
   const [mode, setMode] = usePersisted<LearnMode>('learn-mode', 'free');
   const [teacherMode, setTeacherMode] = usePersisted('teacher-mode', false);
 
+  /**
+   * 교사용 보기는 주소에 ?teacher=1 이 붙어 있을 때만 켜진다.
+   * 한 번 켜면 이 브라우저에 기억되므로, 교사용 주소는 한 번만 여시면 된다.
+   * 학생 화면에는 켜는 버튼이 아예 나타나지 않는다.
+   *
+   * 다만 이것은 '가림막'이지 잠금장치가 아니다. 정적 사이트이므로
+   * 주소를 아는 학생은 켤 수 있다. 시험 문항처럼 반드시 가려야 하는 내용은
+   * 이 화면에 두지 않는다.
+   */
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('teacher') === '1') setTeacherMode(true);
+    if (params.get('teacher') === '0') setTeacherMode(false);
+  }, [setTeacherMode]);
+
   useEffect(() => {
     const onHash = () => setScreen(readHash());
     window.addEventListener('hashchange', onHash);

@@ -826,3 +826,41 @@ tr.is-best td {
     break-inside: avoid;
   }
 }
+
+/* ── 학습 모드 설명 ─────────────────────────────────────────── */
+.exp-head__modelabel{font-size:12.5px;color:var(--ink3);font-weight:650}
+.mode-help{
+  background:var(--accent-soft);border-bottom:1px solid var(--accent-line);
+  padding:12px 16px;font-size:14.5px;color:var(--ink2);
+  display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+}
+.mode-help strong{color:var(--ink)}
+.mode-help .btn{margin-left:auto}
+
+/* ── 안내 실험 잠금 안내 ────────────────────────────────────── */
+.lock-note{
+  background:var(--signal-soft);border:1px solid #DFBFA9;border-radius:var(--radius);
+  padding:12px 14px;margin-top:10px;font-size:13.5px;color:var(--ink2);
+}
+.lock-note strong{color:var(--signal);display:block;margin-bottom:4px;font-size:14px}
+.lock-note p{margin:0 0 9px}
+
+/* ── 8퍼즐 트리 가로 스크롤 ─────────────────────────────────── */
+.tree-scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+
+/* ── 교사용 예시 답안 ───────────────────────────────────────── */
+.teacher h3{font-size:14.5px;font-weight:750;margin:18px 0 8px;color:var(--signal)}
+.teacher h3:first-of-type{margin-top:0}
+.teacher-answers__note{font-size:13px;color:var(--ink3);margin:0 0 10px}
+.qa{background:var(--card);border:1px solid var(--rule);border-radius:6px;
+  padding:11px 13px;margin-bottom:8px}
+.qa__q{font-size:14px;font-weight:650;color:var(--ink);margin-bottom:6px}
+.qa__tag{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:700;
+  color:var(--signal);background:var(--signal-soft);border:1px solid #DFBFA9;border-radius:4px;
+  padding:1px 6px;margin-right:7px;vertical-align:.1em}
+.qa__a{font-size:14px;color:var(--ink2);line-height:1.62;
+  border-left:3px solid var(--accent-line);padding-left:11px}
+.qa__student{margin-top:8px;font-size:13px;color:var(--ink2);
+  background:#F4F7F6;border-radius:5px;padding:7px 10px}
+.qa__student em{color:var(--ink3);font-style:normal}
+.btn--teacher{background:var(--signal-soft);border-color:#DFBFA9;color:var(--signal)}

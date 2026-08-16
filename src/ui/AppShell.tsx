@@ -110,14 +110,16 @@ export function AppShell({
           ))}
         </nav>
         <div className="topbar__right">
-          <button
-            type="button"
-            className="btn btn--small"
-            onClick={onToggleTeacher}
-            aria-pressed={teacherMode}
-          >
-            {teacherMode ? '교사용 보기 끄기' : '교사용 보기'}
-          </button>
+          {/*
+            교사용 보기는 주소로만 켤 수 있다. (?teacher=1)
+            학생 화면에는 버튼 자체가 나타나지 않는다.
+            켜져 있을 때만 끄는 버튼을 보여 준다.
+          */}
+          {teacherMode && (
+            <button type="button" className="btn btn--small btn--teacher" onClick={onToggleTeacher}>
+              교사용 보기 끄기
+            </button>
+          )}
           <button type="button" className="btn btn--small" onClick={handleDeviceSave}>
             {deviceOn ? '이 기기에 저장 중' : '이 기기에 저장'}
           </button>
