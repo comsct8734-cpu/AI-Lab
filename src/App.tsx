@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { AppShell, type NavItem } from './ui/AppShell';
-import { Home, SEARCH_SCREENS } from './experiments/Home';
+import { DATA_SCREENS, Home, SEARCH_SCREENS } from './experiments/Home';
+import { DataLabScreen, type DataScreen } from './experiments/data/DataLabScreen';
+import { KnnScreen } from './experiments/data/KnnScreen';
 import { ProblemTreeScreen } from './experiments/search/ProblemTreeScreen';
 import { SearchLabScreen } from './experiments/search/SearchLabScreen';
 import type { LearnMode } from './ui/ExperimentFrame';
@@ -14,7 +16,13 @@ import { save } from './storage';
  * 학교망에서 정적 파일로 배포할 때 서버 설정이 필요 없다.
  */
 
-const VALID = new Set(['home', ...SEARCH_SCREENS.map((s) => s.id)]);
+const VALID = new Set([
+  'home',
+  ...SEARCH_SCREENS.map((s) => s.id),
+  ...DATA_SCREENS.map((s) => s.id),
+]);
+
+const DATA_IDS = new Set(DATA_SCREENS.map((s) => s.id));
 
 function readHash(): string {
   const h = window.location.hash.replace(/^#\/?/, '');
@@ -56,17 +64,29 @@ export default function App() {
 
   const nav: NavItem[] = [
     { id: 'search', label: '탐색', enabled: true },
-    { id: 'data', label: '데이터', enabled: false },
+    { id: 'data', label: '데이터', enabled: true },
     { id: 'regression', label: '회귀', enabled: false },
     { id: 'classify', label: '분류', enabled: false },
     { id: 'cluster', label: '군집', enabled: false },
     { id: 'neural', label: '신경망', enabled: false },
   ];
 
-  const currentUnit = screen === 'home' ? null : 'search';
+  const currentUnit = screen === 'home' ? null : DATA_IDS.has(screen) ? 'data' : 'search';
 
   const body = () => {
     if (screen === 'home') return <Home onOpen={go} />;
+    if (screen === 'knn')
+      return <KnnScreen mode={mode} onModeChange={setMode} teacherMode={teacherMode} />;
+    if (DATA_IDS.has(screen))
+      return (
+        <DataLabScreen
+          key={screen}
+          screen={screen as DataScreen}
+          mode={mode}
+          onModeChange={setMode}
+          teacherMode={teacherMode}
+        />
+      );
     if (screen === 'problem-tree')
       return (
         <ProblemTreeScreen mode={mode} onModeChange={setMode} teacherMode={teacherMode} />
@@ -86,7 +106,7 @@ export default function App() {
     <AppShell
       nav={nav}
       currentUnit={currentUnit}
-      onNavigate={() => go(SEARCH_SCREENS[0].id)}
+      onNavigate={(unit) => go(unit === 'data' ? DATA_SCREENS[0].id : SEARCH_SCREENS[0].id)}
       onHome={() => go('home')}
       teacherMode={teacherMode}
       onToggleTeacher={() => setTeacherMode(!teacherMode)}
@@ -98,7 +118,7 @@ export default function App() {
           <section className="section-card">
             <h2>다른 실험으로 이동</h2>
             <div className="screen-list">
-              {SEARCH_SCREENS.map((s) => (
+              {(DATA_IDS.has(screen) ? DATA_SCREENS : SEARCH_SCREENS).map((s) => (
                 <button
                   key={s.id}
                   type="button"

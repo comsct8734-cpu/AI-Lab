@@ -8,6 +8,8 @@ import { renderToString } from 'react-dom/server';
 import { Home } from './experiments/Home';
 import { ProblemTreeScreen } from './experiments/search/ProblemTreeScreen';
 import { SearchLabScreen } from './experiments/search/SearchLabScreen';
+import { DataLabScreen } from './experiments/data/DataLabScreen';
+import { KnnScreen } from './experiments/data/KnnScreen';
 
 let pass = 0;
 let fail = 0;
@@ -133,4 +135,58 @@ check('자유 실험으로 전환 버튼', guidedLock.includes('자유 실험으
 
 console.log(`\n${'═'.repeat(64)}`);
 console.log(`최종 · 통과 ${pass}개 · 실패 ${fail}개`);
+console.log('═'.repeat(64));
+
+/* ── MVP 2 데이터 실험실 ──────────────────────────────────── */
+console.log('\nMVP 2 · 데이터 실험실');
+console.log('─'.repeat(64));
+
+const observe = render(
+  '2-1 데이터 관찰',
+  <DataLabScreen screen="observe" mode="free" onModeChange={noop} teacherMode={false} />,
+);
+check('교과서 쪽수', observe.includes('67~77쪽'));
+check('전처리 이력 막대', observe.includes('pipeline-bar'));
+check('원본 344행 표시', observe.includes('344'));
+check('교육용 예제 데이터 표시', observe.includes('교육용 예제 데이터'));
+check('종별 막대그래프', observe.includes('종별 데이터 개수'));
+check('상관 히트맵', observe.includes('속성 사이의 상관관계'));
+check('속성 유형 표시', observe.includes('수치형') && observe.includes('범주형'));
+
+const clean = render(
+  '2-2 결측치와 이상치',
+  <DataLabScreen screen="clean" mode="free" onModeChange={noop} teacherMode={false} />,
+);
+check('네 가지 결측치 처리', ['그대로 두기', '해당 행 제거', '평균값으로 대체', '중앙값으로 대체'].every((t) => clean.includes(t)));
+check('이상치 제거 선택', clean.includes('체질량 이상치 제거'));
+check('상자그림', clean.includes('상자그림'));
+
+const norm = render(
+  '2-3 정규화',
+  <DataLabScreen screen="normalize" mode="free" onModeChange={noop} teacherMode={false} />,
+);
+check('정규화 전후 비교', norm.includes('정규화 전') && norm.includes('정규화 후'));
+check('최근접 이웃으로 연결 안내', norm.includes('최근접 이웃 실험실'));
+
+const knn = render('2-4 최근접 이웃', <KnnScreen mode="free" onModeChange={noop} teacherMode={false} />);
+check('교과서 쪽수', knn.includes('108~109, 114쪽'));
+check('k 값 조절', knn.includes('k 값'));
+check('거리 계산 방법', knn.includes('유클리디언') && knn.includes('맨해튼'));
+check('정규화 토글', knn.includes('정규화'));
+check('결정 영역 토글', knn.includes('결정 영역'));
+check('결과를 개수로 설명', knn.includes('테스트 데이터') && knn.includes('올바르게'));
+check('종별 정확도 표', knn.includes('종별로 얼마나 맞혔을까'));
+check('훈련 · 테스트 구분 범례', knn.includes('빈 모양') && knn.includes('채운 모양'));
+
+const knnTeacher = render(
+  '2-4 (교사용 보기)',
+  <KnnScreen mode="free" onModeChange={noop} teacherMode />,
+);
+check('교사용 예시 답안', knnTeacher.includes('예시 답안'));
+check('k 예시 답안 내용', knnTeacher.includes('더 매끄러워진다'));
+check('합성 데이터 안내', knnTeacher.includes('교육용 합성 데이터'));
+check('교과서 168 오기 안내', knnTeacher.includes('168마리'));
+
+console.log(`\n${'═'.repeat(64)}`);
+console.log(`MVP 1+2 최종 · 통과 ${pass}개 · 실패 ${fail}개`);
 console.log('═'.repeat(64));

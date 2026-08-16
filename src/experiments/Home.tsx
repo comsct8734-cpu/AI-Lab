@@ -13,6 +13,13 @@ export interface ScreenInfo {
   textbook: string;
 }
 
+export const DATA_SCREENS: ScreenInfo[] = [
+  { id: 'observe', no: '2-1', name: '데이터 관찰', textbook: '67~77쪽' },
+  { id: 'clean', no: '2-2', name: '결측치와 이상치', textbook: '74~75, 80~81쪽' },
+  { id: 'normalize', no: '2-3', name: '정규화', textbook: '76쪽' },
+  { id: 'knn', no: '2-4', name: '최근접 이웃', textbook: '108~109, 114쪽' },
+];
+
 export const SEARCH_SCREENS: ScreenInfo[] = [
   { id: 'problem-tree', no: '1-1', name: '문제를 트리로 표현하기', textbook: '27~29쪽' },
   { id: 'bfs', no: '1-2', name: '너비 우선 탐색', textbook: '30~31쪽' },
@@ -31,7 +38,7 @@ interface Unit {
 
 const UNITS: Unit[] = [
   { id: 'search', unit: 'Ⅰ-02', name: '탐색 실험실', pages: '26~41쪽', count: 4, ready: true },
-  { id: 'data', unit: 'Ⅱ-01', name: '데이터 실험실', pages: '60~87쪽', count: 4, ready: false },
+  { id: 'data', unit: 'Ⅱ-01', name: '데이터 실험실', pages: '67~81, 108쪽', count: 4, ready: true },
   { id: 'regression', unit: 'Ⅱ-02', name: '회귀 실험실', pages: '96~105쪽', count: 2, ready: false },
   { id: 'classify', unit: 'Ⅱ-02', name: '분류 실험실', pages: '106~117쪽', count: 4, ready: false },
   { id: 'cluster', unit: 'Ⅱ-02', name: '군집 실험실', pages: '118~124쪽', count: 2, ready: false },
@@ -40,7 +47,11 @@ const UNITS: Unit[] = [
 
 /** '발견한 사실'까지 연 실험을 완료로 본다 */
 function isDone(screenId: string): boolean {
-  const key = screenId === 'problem-tree' ? 'problem-tree' : `search-${screenId}`;
+  const key = DATA_SCREENS.some((s) => s.id === screenId)
+    ? `data-${screenId}`
+    : screenId === 'problem-tree'
+      ? 'problem-tree'
+      : `search-${screenId}`;
   return load<boolean>(`${key}:finding`, false);
 }
 
@@ -49,9 +60,10 @@ interface Props {
 }
 
 export function Home({ onOpen }: Props) {
-  const doneCount = SEARCH_SCREENS.filter((s) => isDone(s.id)).length;
+  const searchDone = SEARCH_SCREENS.filter((s) => isDone(s.id)).length;
+  const dataDone = DATA_SCREENS.filter((s) => isDone(s.id)).length;
   const last = load<string | null>('last-screen', null);
-  const lastInfo = SEARCH_SCREENS.find((s) => s.id === last);
+  const lastInfo = [...SEARCH_SCREENS, ...DATA_SCREENS].find((s) => s.id === last);
 
   return (
     <div className="home">
@@ -61,14 +73,16 @@ export function Home({ onOpen }: Props) {
       <h2>교과서 단원을 고르세요</h2>
       <div className="unit-grid">
         {UNITS.map((u) => {
-          const done = u.id === 'search' ? doneCount : 0;
+          const done = u.id === 'search' ? searchDone : u.id === 'data' ? dataDone : 0;
           return (
             <button
               key={u.id}
               type="button"
               className="unit-card"
               disabled={!u.ready}
-              onClick={() => u.ready && onOpen(SEARCH_SCREENS[0].id)}
+              onClick={() =>
+                u.ready && onOpen(u.id === 'data' ? DATA_SCREENS[0].id : SEARCH_SCREENS[0].id)
+              }
             >
               <span className="unit-card__unit">
                 {u.unit} · {u.pages}
@@ -102,6 +116,24 @@ export function Home({ onOpen }: Props) {
           </button>
         </div>
       )}
+
+      <h2 style={{ marginTop: 32 }}>데이터 실험실 — 실험 4개</h2>
+      <p className="muted" style={{ marginTop: -6 }}>
+        네 실험이 같은 데이터를 이어서 씁니다. 순서대로 진행하시면 앞에서 한 전처리가 뒤로 이어집니다.
+      </p>
+      <div className="screen-list">
+        {DATA_SCREENS.map((s) => (
+          <button key={s.id} type="button" className="screen-item" onClick={() => onOpen(s.id)}>
+            <span className="screen-item__no">{s.no}</span>
+            <span>
+              {s.name}
+              <br />
+              <span className="muted">교과서 {s.textbook}</span>
+            </span>
+            {isDone(s.id) && <span className="screen-item__done">완료</span>}
+          </button>
+        ))}
+      </div>
 
       <h2 style={{ marginTop: 32 }}>탐색 실험실 — 실험 4개</h2>
       <div className="screen-list">

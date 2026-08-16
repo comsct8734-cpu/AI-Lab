@@ -20,7 +20,7 @@ export interface NavItem {
 interface Props {
   nav: NavItem[];
   currentUnit: string | null;
-  onNavigate: (id: string) => void;
+  onNavigate: (unitId: string) => void;
   onHome: () => void;
   teacherMode: boolean;
   onToggleTeacher: () => void;

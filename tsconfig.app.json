@@ -25,5 +25,5 @@
   },
   "include": ["src"],
   /* verify.ts 와 smoke.tsx 는 node 로 실행하는 점검 스크립트라 앱 빌드에서 제외한다 */
-  "exclude": ["src/core/search/verify.ts", "src/smoke.tsx", "src/gate.test.ts"]
+  "exclude": ["src/core/search/verify.ts", "src/core/verifyData.ts", "src/data/generate/**", "src/smoke.tsx", "src/gate.test.ts"]
 }
