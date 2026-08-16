@@ -864,3 +864,42 @@ tr.is-best td {
   background:#F4F7F6;border-radius:5px;padding:7px 10px}
 .qa__student em{color:var(--ink3);font-style:normal}
 .btn--teacher{background:var(--signal-soft);border-color:#DFBFA9;color:var(--signal)}
+
+/* ── 문제 설정 편집 띠 (실험 화면 아래, 가운데 프레임 안) ───── */
+.editor-strip{
+  border-top:1px solid var(--rule-soft);background:#FAFCFB;padding:10px 14px;
+}
+.editor-strip__row{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:5px 0;
+}
+.editor-strip__label{
+  flex:none;font-size:12.5px;font-weight:700;color:var(--ink2);
+  display:inline-flex;align-items:center;gap:6px;min-width:96px;
+}
+.editor-strip__items{display:flex;gap:7px;flex-wrap:wrap;flex:1 1 auto;min-width:0}
+.editor-strip__actions{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.mini-field{
+  display:inline-flex;align-items:center;gap:5px;background:var(--card);
+  border:1px solid var(--rule);border-radius:6px;padding:2px 4px 2px 8px;
+}
+.mini-field span{
+  font-family:var(--mono);font-size:12px;color:var(--ink2);white-space:nowrap;
+}
+.mini-field input{
+  width:52px;min-height:32px;padding:3px 6px;text-align:center;
+  border:none;background:transparent;font-family:var(--mono);font-size:13px;font-weight:700;
+}
+.mini-field input:focus{outline:2px solid var(--accent);outline-offset:1px;border-radius:4px}
+.editor-strip .help-body{margin:2px 0 6px}
+
+/* 안내 실험 잠금 조건 목록 */
+.lock-note__list{list-style:none;padding:0;margin:0 0 9px}
+.lock-note__list li{
+  font-size:13px;color:var(--signal);padding:3px 0 3px 0;font-weight:650;
+}
+.lock-note__list li.is-done{color:var(--accent);text-decoration:none}
+
+@media (max-width:833px){
+  .editor-strip__actions{margin-left:0;width:100%}
+  .editor-strip__label{min-width:0;width:100%}
+}

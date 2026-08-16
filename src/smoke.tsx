@@ -64,7 +64,9 @@ const ucs = render(
 );
 check('오픈 리스트 표시', ucs.includes('오픈 리스트'));
 check('닫힌 리스트 표시', ucs.includes('닫힌 리스트'));
-check('간선 비용 편집 b–d', ucs.includes('b') && ucs.includes('모든 비용을 1로'));
+check('간선 비용 편집기가 가운데 프레임에', ucs.includes('editor-strip'));
+check('간선 비용 편집 버튼', ucs.includes('모든 비용을 1로'));
+check('오른쪽 설정 패널이 짧아졌는가', ucs.indexOf('editor-strip') < ucs.indexOf('비교함'));
 check('균일 비용 경로 a → c → d → e', ucs.includes('a → c → d → e'));
 
 const astar = render(
@@ -72,7 +74,8 @@ const astar = render(
   <SearchLabScreen method="astar" mode="free" onModeChange={noop} teacherMode={false} />,
 );
 check('f(n) = g(n) + h(n) 표시', astar.includes('f(n) = g(n) + h(n)'));
-check('휴리스틱 편집란', astar.includes('휴리스틱값을 모두 0으로'));
+check('휴리스틱 편집란이 가운데 프레임에', astar.includes('휴리스틱값 h(n)') && astar.includes('editor-strip'));
+check('휴리스틱 모두 0으로 버튼', astar.includes('모두 0으로'));
 check('A*도 같은 경로', astar.includes('a → c → d → e'));
 
 const teacher = render(
@@ -124,6 +127,7 @@ const guidedLock = renderToString(
   <SearchLabScreen method="ucs" mode="guided" onModeChange={noop} teacherMode={false} />,
 );
 check('잠금 안내가 실행 버튼 옆에', guidedLock.includes('안내 실험 모드입니다'));
+check('잠금 조건 두 가지 표시', guidedLock.includes('예상 보기 하나 고르기') && guidedLock.includes('그렇게 생각한 이유 적기'));
 check('예상하기로 이동 버튼', guidedLock.includes('예상하기로 이동'));
 check('자유 실험으로 전환 버튼', guidedLock.includes('자유 실험으로'));
 

@@ -41,6 +41,9 @@ export function InquiryPanel({ spec, mode, hasRun }: Props) {
   const [openFinding, setOpenFinding] = usePersisted(`${spec.id}:finding`, false);
 
   const explained = explain.trim().length >= 10;
+  // 실행 버튼이 열리는 조건과 같아야 한다 (한글 한 글자가 3바이트)
+  const guidedDone =
+    choice !== null && new TextEncoder().encode(why.trim()).length >= 3;
 
   return (
     <section className="section-card" id="inquiry">
@@ -70,9 +73,12 @@ export function InquiryPanel({ spec, mode, hasRun }: Props) {
             placeholder="실행하기 전에 먼저 적어 보세요."
           />
         </label>
-        {mode === 'guided' && choice === null && (
+        {mode === 'guided' && !guidedDone && (
           <p className="locked-note">
-            안내 실험에서는 먼저 예상을 고른 뒤에 실행할 수 있습니다.
+            안내 실험에서는 <strong>보기를 고르고 이유를 적어야</strong> 실행 버튼이 열립니다.
+            {choice === null
+              ? ' 아직 보기를 고르지 않았습니다.'
+              : ' 이유를 조금 더 적어 주세요.'}
           </p>
         )}
       </div>

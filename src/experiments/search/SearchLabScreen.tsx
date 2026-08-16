@@ -117,6 +117,7 @@ export function SearchLabScreen({ method, mode, onModeChange, teacherMode }: Pro
   const [kind, setKind] = useState<ProblemKind>('city');
   const [graph, setGraph] = useState<CityGraph>(() => cloneCityGraph());
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const [helpOpen, setHelpOpen] = useState<'cost' | 'h' | null>(null);
   const [narrow, setNarrow] = useState(false);
   const [snapshots, setSnapshots] = usePersisted<Snapshot[]>(
     `search-${method}:snapshots`,
@@ -153,7 +154,18 @@ export function SearchLabScreen({ method, mode, onModeChange, teacherMode }: Pro
 
   const guidedLock = mode === 'guided';
   const [predicted] = usePersisted<number | null>(`${INQUIRY[method].id}:choice`, null);
-  const canRun = !guidedLock || predicted !== null;
+  const [predictWhy] = usePersisted<string>(`${INQUIRY[method].id}:why`, '');
+
+  /**
+   * 안내 실험에서 실행을 여는 조건
+   *  ① 예상 보기 중 하나를 고르고
+   *  ② 그렇게 생각한 이유를 3바이트 이상 적을 것 (한글 한 글자가 3바이트)
+   * 두 값 모두 아래 탐구 패널에서 입력되므로, usePersisted 가 같은 키를 공유해야 한다.
+   */
+  const whyBytes = new TextEncoder().encode(predictWhy.trim()).length;
+  const hasChoice = predicted !== null;
+  const hasReason = whyBytes >= 3;
+  const canRun = !guidedLock || (hasChoice && hasReason);
 
   const setEdgeCost = (from: string, to: string, cost: number) => {
     setGraph((g) => ({
@@ -285,6 +297,123 @@ export function SearchLabScreen({ method, mode, onModeChange, teacherMode }: Pro
         </div>
       </div>
 
+      {/*
+        문제 설정 편집기.
+        오른쪽 설정 패널에 두면 세로로 길어져 스크롤이 심해지므로
+        가운데 실험 화면 바로 아래에 가로로 배치한다.
+      */}
+      {kind === 'city' && method !== 'bfs' && (
+        <div className="editor-strip">
+          <div className="editor-strip__row">
+            <span className="editor-strip__label">
+              간선 비용
+              <button
+                type="button"
+                className="help-btn"
+                onClick={() => setHelpOpen(helpOpen === 'cost' ? null : 'cost')}
+                aria-expanded={helpOpen === 'cost'}
+                aria-label="간선 비용 설명"
+              >
+                ?
+              </button>
+            </span>
+            <div className="editor-strip__items">
+              {graph.edges.map((e) => (
+                <label key={`${e.from}-${e.to}`} className="mini-field">
+                  <span>
+                    {e.from}–{e.to}
+                  </span>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    value={e.cost}
+                    onChange={(ev) => setEdgeCost(e.from, e.to, Number(ev.target.value))}
+                  />
+                </label>
+              ))}
+            </div>
+            <div className="editor-strip__actions">
+              <button
+                type="button"
+                className="btn btn--small"
+                onClick={() =>
+                  setGraph((g) => ({ ...g, edges: g.edges.map((e) => ({ ...e, cost: 1 })) }))
+                }
+              >
+                모든 비용을 1로
+              </button>
+              <button
+                type="button"
+                className="btn btn--small"
+                onClick={() => setGraph(cloneCityGraph(DEFAULT_CITY_GRAPH))}
+              >
+                기본값 복원
+              </button>
+            </div>
+          </div>
+          {helpOpen === 'cost' && (
+            <p className="help-body">
+              한 도시에서 다른 도시로 이동하는 데 걸리는 시간입니다. 값을 바꾸면 탐색이 처음으로
+              돌아갑니다.
+            </p>
+          )}
+
+          {method === 'astar' && (
+            <>
+              <div className="editor-strip__row">
+                <span className="editor-strip__label">
+                  휴리스틱값 h(n)
+                  <button
+                    type="button"
+                    className="help-btn"
+                    onClick={() => setHelpOpen(helpOpen === 'h' ? null : 'h')}
+                    aria-expanded={helpOpen === 'h'}
+                    aria-label="휴리스틱값 설명"
+                  >
+                    ?
+                  </button>
+                </span>
+                <div className="editor-strip__items">
+                  {graph.nodes.map((n) => (
+                    <label key={n} className="mini-field">
+                      <span>h({n})</span>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        value={graph.heuristics[n] ?? 0}
+                        onChange={(ev) => setHeuristic(n, Number(ev.target.value))}
+                      />
+                    </label>
+                  ))}
+                </div>
+                <div className="editor-strip__actions">
+                  <button
+                    type="button"
+                    className="btn btn--small"
+                    onClick={() =>
+                      setGraph((g) => ({
+                        ...g,
+                        heuristics: Object.fromEntries(g.nodes.map((n) => [n, 0])),
+                      }))
+                    }
+                  >
+                    모두 0으로
+                  </button>
+                </div>
+              </div>
+              {helpOpen === 'h' && (
+                <p className="help-body">
+                  목표까지 얼마나 남았는지 경험으로 추정한 값입니다. 사람마다 다르게 정할 수
+                  있습니다.
+                </p>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
       {/* 오픈 / 닫힌 리스트 — 균일 비용·A*에서 특히 중요 (교과서 33쪽) */}
       {kind === 'city' && (
         <div className="lists">
@@ -352,9 +481,17 @@ export function SearchLabScreen({ method, mode, onModeChange, teacherMode }: Pro
         <div className="lock-note">
           <strong>안내 실험 모드입니다.</strong>
           <p>
-            아래 <strong>① 예상하기</strong>에서 결과를 먼저 예상해야 실행할 수 있습니다.
-            결과를 보고 나서 예상을 맞춰 쓰는 것을 막기 위한 장치입니다.
+            결과를 보고 나서 예상을 맞춰 쓰는 것을 막기 위해, 아래{' '}
+            <strong>① 예상하기</strong>를 마쳐야 실행할 수 있습니다.
           </p>
+          <ul className="lock-note__list">
+            <li className={hasChoice ? 'is-done' : ''}>
+              {hasChoice ? '완료' : '해야 함'} · 예상 보기 하나 고르기
+            </li>
+            <li className={hasReason ? 'is-done' : ''}>
+              {hasReason ? '완료' : '해야 함'} · 그렇게 생각한 이유 적기
+            </li>
+          </ul>
           <div className="btn-row">
             <button
               type="button"
@@ -372,91 +509,6 @@ export function SearchLabScreen({ method, mode, onModeChange, teacherMode }: Pro
             </button>
           </div>
         </div>
-      )}
-
-      {kind === 'city' && method !== 'bfs' && (
-        <SettingRow
-          label="간선 비용"
-          help="한 도시에서 다른 도시로 이동하는 데 걸리는 시간입니다. 값을 바꾸면 탐색이 처음으로 돌아갑니다."
-        >
-          <div style={{ display: 'grid', gap: 5 }}>
-            {graph.edges.map((e) => (
-              <label
-                key={`${e.from}-${e.to}`}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5 }}
-              >
-                <span style={{ fontFamily: 'ui-monospace, monospace', width: 40 }}>
-                  {e.from}–{e.to}
-                </span>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  min={0}
-                  value={e.cost}
-                  onChange={(ev) => setEdgeCost(e.from, e.to, Number(ev.target.value))}
-                  style={{ minHeight: 34, padding: '4px 8px' }}
-                />
-              </label>
-            ))}
-          </div>
-          <div className="btn-row" style={{ marginTop: 8 }}>
-            <button
-              type="button"
-              className="btn btn--small"
-              onClick={() =>
-                setGraph((g) => ({ ...g, edges: g.edges.map((e) => ({ ...e, cost: 1 })) }))
-              }
-            >
-              모든 비용을 1로
-            </button>
-            <button
-              type="button"
-              className="btn btn--small"
-              onClick={() => setGraph(cloneCityGraph(DEFAULT_CITY_GRAPH))}
-            >
-              기본값 복원
-            </button>
-          </div>
-        </SettingRow>
-      )}
-
-      {kind === 'city' && method === 'astar' && (
-        <SettingRow
-          label="휴리스틱값 h(n)"
-          help="목표까지 얼마나 남았는지 경험으로 추정한 값입니다. 사람마다 다르게 정할 수 있습니다."
-        >
-          <div style={{ display: 'grid', gap: 5 }}>
-            {graph.nodes.map((n) => (
-              <label
-                key={n}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5 }}
-              >
-                <span style={{ fontFamily: 'ui-monospace, monospace', width: 40 }}>h({n})</span>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  min={0}
-                  value={graph.heuristics[n] ?? 0}
-                  onChange={(ev) => setHeuristic(n, Number(ev.target.value))}
-                  style={{ minHeight: 34, padding: '4px 8px' }}
-                />
-              </label>
-            ))}
-          </div>
-          <button
-            type="button"
-            className="btn btn--wide btn--small"
-            style={{ marginTop: 8 }}
-            onClick={() =>
-              setGraph((g) => ({
-                ...g,
-                heuristics: Object.fromEntries(g.nodes.map((n) => [n, 0])),
-              }))
-            }
-          >
-            휴리스틱값을 모두 0으로
-          </button>
-        </SettingRow>
       )}
 
       {method === 'astar' && (

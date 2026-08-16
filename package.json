@@ -9,8 +9,9 @@
     "preview": "vite preview",
     "verify": "tsx src/core/search/verify.ts",
     "smoke": "tsx --tsconfig tsconfig.app.json src/smoke.tsx",
-    "check": "npm run verify && npm run smoke && npm run build",
-    "lint": "oxlint"
+    "check": "npm run verify && npm run gate && npm run smoke && npm run build",
+    "lint": "oxlint",
+    "gate": "tsx src/gate.test.ts"
   },
   "dependencies": {
     "react": "^19.2.8",
