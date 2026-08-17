@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "verify": "tsx src/core/search/verify.ts",
     "smoke": "tsx --tsconfig tsconfig.app.json src/smoke.tsx",
-    "check": "npm run verify && npm run verify:data && npm run verify:reg && npm run verify:cls && npm run verify:clu && npm run gate && npm run smoke && npm run build",
+    "check": "npm run verify && npm run verify:data && npm run verify:reg && npm run verify:cls && npm run verify:clu && npm run verify:nn && npm run gate && npm run smoke && npm run build",
     "lint": "oxlint",
     "gate": "tsx src/gate.test.ts",
     "data": "tsx src/data/generate/penguins.ts",
@@ -18,7 +18,10 @@
     "verify:reg": "tsx src/core/verifyRegression.ts",
     "verify:cls": "tsx src/core/verifyClassify.ts",
     "data:cluster": "tsx src/data/generate/cluster.ts",
-    "verify:clu": "tsx src/core/verifyCluster.ts"
+    "verify:clu": "tsx src/core/verifyCluster.ts",
+    "data:shapes": "tsx src/data/generate/shapes.ts",
+    "data:digits": "tsx src/data/generate/digits.ts",
+    "verify:nn": "tsx src/core/verifyNeural.ts"
   },
   "dependencies": {
     "react": "^19.2.8",
@@ -29,6 +32,7 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.4",
+    "mnist": "^1.1.0",
     "oxlint": "^1.75.0",
     "tsx": "^4.23.12",
     "typescript": "~6.0.2",

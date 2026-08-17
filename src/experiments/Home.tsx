@@ -37,6 +37,12 @@ export const CLUSTER_SCREENS: ScreenInfo[] = [
   { id: 'silhouette', no: '5-2', name: '군집 개수 정하기', textbook: '123~124쪽' },
 ];
 
+export const NEURAL_SCREENS: ScreenInfo[] = [
+  { id: 'neural', no: '6-1', name: '신경망 실험실', textbook: '127~140쪽' },
+  { id: 'digit', no: '6-2', name: '손글씨 숫자', textbook: '137~142쪽' },
+  { id: 'challenge', no: '6-3', name: '도전 과제', textbook: 'Ⅰ~Ⅱ 종합' },
+];
+
 export const SEARCH_SCREENS: ScreenInfo[] = [
   { id: 'problem-tree', no: '1-1', name: '문제를 트리로 표현하기', textbook: '27~29쪽' },
   { id: 'bfs', no: '1-2', name: '너비 우선 탐색', textbook: '30~31쪽' },
@@ -59,12 +65,14 @@ const UNITS: Unit[] = [
   { id: 'regression', unit: 'Ⅱ-02', name: '회귀 실험실', pages: '94~103쪽', count: 3, ready: true },
   { id: 'classify', unit: 'Ⅱ-02', name: '분류 실험실', pages: '106~117쪽', count: 3, ready: true },
   { id: 'cluster', unit: 'Ⅱ-02', name: '군집 실험실', pages: '118~124쪽', count: 2, ready: true },
-  { id: 'neural', unit: 'Ⅱ-03', name: '신경망 실험실', pages: '126~142쪽', count: 3, ready: false },
+  { id: 'neural', unit: 'Ⅱ-03', name: '신경망 실험실', pages: '127~142쪽', count: 3, ready: true },
 ];
 
 /** '발견한 사실'까지 연 실험을 완료로 본다 */
 function isDone(screenId: string): boolean {
-  const key = CLUSTER_SCREENS.some((s) => s.id === screenId)
+  const key = NEURAL_SCREENS.some((s) => s.id === screenId)
+    ? `nn-${screenId}`
+    : CLUSTER_SCREENS.some((s) => s.id === screenId)
     ? `clu-${screenId}`
     : CLASSIFY_SCREENS.some((s) => s.id === screenId)
     ? `cls-${screenId}`
@@ -88,6 +96,7 @@ export function Home({ onOpen }: Props) {
   const regDone = REGRESSION_SCREENS.filter((s) => isDone(s.id)).length;
   const clsDone = CLASSIFY_SCREENS.filter((s) => isDone(s.id)).length;
   const cluDone = CLUSTER_SCREENS.filter((s) => isDone(s.id)).length;
+  const nnDone = NEURAL_SCREENS.filter((s) => isDone(s.id)).length;
   const last = load<string | null>('last-screen', null);
   const lastInfo = [
     ...SEARCH_SCREENS,
@@ -95,6 +104,7 @@ export function Home({ onOpen }: Props) {
     ...REGRESSION_SCREENS,
     ...CLASSIFY_SCREENS,
     ...CLUSTER_SCREENS,
+    ...NEURAL_SCREENS,
   ].find(
     (s) => s.id === last,
   );
@@ -118,7 +128,9 @@ export function Home({ onOpen }: Props) {
                     ? clsDone
                     : u.id === 'cluster'
                       ? cluDone
-                      : 0;
+                      : u.id === 'neural'
+                        ? nnDone
+                        : 0;
           return (
             <button
               key={u.id}
@@ -136,7 +148,9 @@ export function Home({ onOpen }: Props) {
                         ? CLASSIFY_SCREENS[0].id
                         : u.id === 'cluster'
                           ? CLUSTER_SCREENS[0].id
-                          : SEARCH_SCREENS[0].id,
+                          : u.id === 'neural'
+                            ? NEURAL_SCREENS[0].id
+                            : SEARCH_SCREENS[0].id,
                 )
               }
             >
@@ -179,6 +193,24 @@ export function Home({ onOpen }: Props) {
       </p>
       <div className="screen-list">
         {DATA_SCREENS.map((s) => (
+          <button key={s.id} type="button" className="screen-item" onClick={() => onOpen(s.id)}>
+            <span className="screen-item__no">{s.no}</span>
+            <span>
+              {s.name}
+              <br />
+              <span className="muted">교과서 {s.textbook}</span>
+            </span>
+            {isDone(s.id) && <span className="screen-item__done">완료</span>}
+          </button>
+        ))}
+      </div>
+
+      <h2 style={{ marginTop: 32 }}>신경망 실험실 — 실험 3개</h2>
+      <p className="muted" style={{ marginTop: -6 }}>
+        구조를 바꾸며 직접 학습시켜 봅니다. 마지막 도전 과제는 지금까지 배운 것을 모두 씁니다.
+      </p>
+      <div className="screen-list">
+        {NEURAL_SCREENS.map((s) => (
           <button key={s.id} type="button" className="screen-item" onClick={() => onOpen(s.id)}>
             <span className="screen-item__no">{s.no}</span>
             <span>
@@ -258,6 +290,15 @@ export function Home({ onOpen }: Props) {
             {isDone(s.id) && <span className="screen-item__done">완료</span>}
           </button>
         ))}
+      </div>
+
+      <div className="resume" style={{ marginTop: 28 }}>
+        <span>
+          지금까지 적은 내용을 모아 보고 인쇄할 수 있습니다
+        </span>
+        <button type="button" className="btn btn--small btn--primary" onClick={() => onOpen('record')}>
+          내 실험 기록 열기
+        </button>
       </div>
 
       <div className="note">

@@ -15,6 +15,8 @@ import { RegressionScreen } from './experiments/regression/RegressionScreen';
 import { TreeScreen } from './experiments/classify/TreeScreen';
 import { ClassifyLabScreen } from './experiments/classify/ClassifyLabScreen';
 import { ClusterLabScreen } from './experiments/cluster/ClusterLabScreen';
+import { NeuralScreen } from './experiments/neural/NeuralScreen';
+import { ChallengeScreen, DigitScreen, RecordScreen } from './experiments/neural/DigitScreen';
 
 let pass = 0;
 let fail = 0;
@@ -384,4 +386,53 @@ check('테스트 데이터도 그려지는가', hollow > 0);
 
 console.log(`\n${'═'.repeat(64)}`);
 console.log(`전체 최종 · 통과 ${pass}개 · 실패 ${fail}개`);
+console.log('═'.repeat(64));
+
+/* ── MVP 6 신경망 실험실 ──────────────────────────────────── */
+console.log('\nMVP 6 · 신경망 실험실');
+console.log('─'.repeat(64));
+
+const nn = render('6-1 신경망 실험실', <NeuralScreen mode="free" onModeChange={noop} teacherMode={false} />);
+check('교과서 쪽수', nn.includes('127~140쪽'));
+check('은닉층 개수 조절', nn.includes('은닉층 개수'));
+check('활성화 함수 3종', ['ReLU', '시그모이드', 'tanh'].every((a) => nn.includes(a)));
+check('학습률 조절', nn.includes('학습률'));
+check('데이터 5종', ['직선으로 나뉨', '가운데 원', '네 칸', '두 갈래 나선', '식품'].every((d) => nn.includes(d)));
+check('학습 시작 버튼', nn.includes('학습 시작'));
+check('가중치 다시 뽑기', nn.includes('처음 가중치 다시 뽑기'));
+check('신경망 구조 그림', nn.includes('신경망 구조'));
+check('입력층·은닉층·출력층 표기', nn.includes('입력층') && nn.includes('출력층'));
+
+const dg = render('6-2 손글씨 숫자', <DigitScreen mode="free" onModeChange={noop} teacherMode={false} />);
+check('교과서 쪽수', dg.includes('137~142쪽'));
+check('10개 확률 막대', dg.includes('각 숫자일 확률'));
+check('실제 MNIST 로 학습했다는 안내', dg.includes('MNIST'));
+check('테스트 정확도 표시', dg.includes('92.8%'));
+check('모델이 받는 값 안내', dg.includes('모델이 받는 값'));
+check('이 기기에서 계산한다는 안내', dg.includes('지금 이 기기에서'));
+
+const ch = render('6-3 도전 과제', <ChallengeScreen mode="free" onModeChange={noop} teacherMode={false} />);
+check('도전 과제 6개', (ch.match(/challenge__no/g) ?? []).length === 6);
+// 조건과 힌트는 항목을 펼쳐야 나온다. 닫힌 상태에서는 제목만 보인다.
+check('과제 제목이 보이는가', ch.includes('은닉층이 꼭 필요한 데이터를 찾아라'));
+check('정답을 알려 주지 않는다는 안내', ch.includes('정답을 알려 주지 않습니다'));
+check('기록으로 이어진다는 안내', ch.includes('내 실험 기록'));
+
+// 기록이 비어 있으면 화면이 짧은 것이 정상이므로 길이 검사를 하지 않는다
+const rec = renderToString(<RecordScreen />);
+check('6-4 내 실험 기록 렌더링', rec.length > 300);
+check('인쇄 버튼', rec.includes('인쇄하기'));
+check('이름 입력', rec.includes('이름'));
+check('기록 없을 때 안내', rec.includes('아직 기록된 내용이 없습니다'));
+
+const nnTeacher = render('6-1 (교사용 보기)', <NeuralScreen mode="free" onModeChange={noop} teacherMode />);
+check('교사용 예시 답안', nnTeacher.includes('예시 답안'));
+check('죽은 노드 심화 질문', nnTeacher.includes('죽은 노드'));
+
+const dgTeacher = render('6-2 (교사용 보기)', <DigitScreen mode="free" onModeChange={noop} teacherMode />);
+check('빈 화면 예시 답안', dgTeacher.includes('어떤 숫자든 하나를 답한다'));
+check('데이터 편향 연결', dgTeacher.includes('데이터 편향'));
+
+console.log(`\n${'═'.repeat(64)}`);
+console.log(`MVP 1~6 전체 · 통과 ${pass}개 · 실패 ${fail}개`);
 console.log('═'.repeat(64));
