@@ -20,6 +20,12 @@ export const DATA_SCREENS: ScreenInfo[] = [
   { id: 'knn', no: '2-4', name: '최근접 이웃', textbook: '108~109, 114쪽' },
 ];
 
+export const REGRESSION_SCREENS: ScreenInfo[] = [
+  { id: 'split', no: '3-1', name: '훈련 데이터와 테스트 데이터', textbook: '94, 100쪽' },
+  { id: 'overfit', no: '3-2', name: '과적합', textbook: '95쪽' },
+  { id: 'regression', no: '3-3', name: '선형 회귀', textbook: '96~103쪽' },
+];
+
 export const SEARCH_SCREENS: ScreenInfo[] = [
   { id: 'problem-tree', no: '1-1', name: '문제를 트리로 표현하기', textbook: '27~29쪽' },
   { id: 'bfs', no: '1-2', name: '너비 우선 탐색', textbook: '30~31쪽' },
@@ -39,7 +45,7 @@ interface Unit {
 const UNITS: Unit[] = [
   { id: 'search', unit: 'Ⅰ-02', name: '탐색 실험실', pages: '26~41쪽', count: 4, ready: true },
   { id: 'data', unit: 'Ⅱ-01', name: '데이터 실험실', pages: '67~81, 108쪽', count: 4, ready: true },
-  { id: 'regression', unit: 'Ⅱ-02', name: '회귀 실험실', pages: '96~105쪽', count: 2, ready: false },
+  { id: 'regression', unit: 'Ⅱ-02', name: '회귀 실험실', pages: '94~103쪽', count: 3, ready: true },
   { id: 'classify', unit: 'Ⅱ-02', name: '분류 실험실', pages: '106~117쪽', count: 4, ready: false },
   { id: 'cluster', unit: 'Ⅱ-02', name: '군집 실험실', pages: '118~124쪽', count: 2, ready: false },
   { id: 'neural', unit: 'Ⅱ-03', name: '신경망 실험실', pages: '126~142쪽', count: 3, ready: false },
@@ -47,7 +53,9 @@ const UNITS: Unit[] = [
 
 /** '발견한 사실'까지 연 실험을 완료로 본다 */
 function isDone(screenId: string): boolean {
-  const key = DATA_SCREENS.some((s) => s.id === screenId)
+  const key = REGRESSION_SCREENS.some((s) => s.id === screenId)
+    ? `reg-${screenId === 'regression' ? 'linear' : screenId}`
+    : DATA_SCREENS.some((s) => s.id === screenId)
     ? `data-${screenId}`
     : screenId === 'problem-tree'
       ? 'problem-tree'
@@ -62,8 +70,11 @@ interface Props {
 export function Home({ onOpen }: Props) {
   const searchDone = SEARCH_SCREENS.filter((s) => isDone(s.id)).length;
   const dataDone = DATA_SCREENS.filter((s) => isDone(s.id)).length;
+  const regDone = REGRESSION_SCREENS.filter((s) => isDone(s.id)).length;
   const last = load<string | null>('last-screen', null);
-  const lastInfo = [...SEARCH_SCREENS, ...DATA_SCREENS].find((s) => s.id === last);
+  const lastInfo = [...SEARCH_SCREENS, ...DATA_SCREENS, ...REGRESSION_SCREENS].find(
+    (s) => s.id === last,
+  );
 
   return (
     <div className="home">
@@ -73,7 +84,14 @@ export function Home({ onOpen }: Props) {
       <h2>교과서 단원을 고르세요</h2>
       <div className="unit-grid">
         {UNITS.map((u) => {
-          const done = u.id === 'search' ? searchDone : u.id === 'data' ? dataDone : 0;
+          const done =
+            u.id === 'search'
+              ? searchDone
+              : u.id === 'data'
+                ? dataDone
+                : u.id === 'regression'
+                  ? regDone
+                  : 0;
           return (
             <button
               key={u.id}
@@ -81,7 +99,14 @@ export function Home({ onOpen }: Props) {
               className="unit-card"
               disabled={!u.ready}
               onClick={() =>
-                u.ready && onOpen(u.id === 'data' ? DATA_SCREENS[0].id : SEARCH_SCREENS[0].id)
+                u.ready &&
+                onOpen(
+                  u.id === 'data'
+                    ? DATA_SCREENS[0].id
+                    : u.id === 'regression'
+                      ? REGRESSION_SCREENS[0].id
+                      : SEARCH_SCREENS[0].id,
+                )
               }
             >
               <span className="unit-card__unit">
@@ -123,6 +148,24 @@ export function Home({ onOpen }: Props) {
       </p>
       <div className="screen-list">
         {DATA_SCREENS.map((s) => (
+          <button key={s.id} type="button" className="screen-item" onClick={() => onOpen(s.id)}>
+            <span className="screen-item__no">{s.no}</span>
+            <span>
+              {s.name}
+              <br />
+              <span className="muted">교과서 {s.textbook}</span>
+            </span>
+            {isDone(s.id) && <span className="screen-item__done">완료</span>}
+          </button>
+        ))}
+      </div>
+
+      <h2 style={{ marginTop: 32 }}>회귀 실험실 — 실험 3개</h2>
+      <p className="muted" style={{ marginTop: -6 }}>
+        데이터 실험실에서 이어집니다. 훈련·테스트 분할과 과적합을 먼저 보고 회귀로 넘어갑니다.
+      </p>
+      <div className="screen-list">
+        {REGRESSION_SCREENS.map((s) => (
           <button key={s.id} type="button" className="screen-item" onClick={() => onOpen(s.id)}>
             <span className="screen-item__no">{s.no}</span>
             <span>

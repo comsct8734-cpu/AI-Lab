@@ -10,6 +10,8 @@ import { ProblemTreeScreen } from './experiments/search/ProblemTreeScreen';
 import { SearchLabScreen } from './experiments/search/SearchLabScreen';
 import { DataLabScreen } from './experiments/data/DataLabScreen';
 import { KnnScreen } from './experiments/data/KnnScreen';
+import { SplitLabScreen } from './experiments/regression/SplitLabScreen';
+import { RegressionScreen } from './experiments/regression/RegressionScreen';
 
 let pass = 0;
 let fail = 0;
@@ -189,4 +191,54 @@ check('교과서 168 오기 안내', knnTeacher.includes('168마리'));
 
 console.log(`\n${'═'.repeat(64)}`);
 console.log(`MVP 1+2 최종 · 통과 ${pass}개 · 실패 ${fail}개`);
+console.log('═'.repeat(64));
+
+/* ── MVP 3 회귀 실험실 ────────────────────────────────────── */
+console.log('\nMVP 3 · 회귀 실험실');
+console.log('─'.repeat(64));
+
+const split = render(
+  '3-1 훈련 데이터와 테스트 데이터',
+  <SplitLabScreen screen="split" mode="free" onModeChange={noop} teacherMode={false} />,
+);
+check('교과서 쪽수', split.includes('94, 100쪽'));
+check('비율 슬라이더', split.includes('테스트 데이터 비율'));
+check('다시 나누기 버튼', split.includes('무작위로 다시 나누기'));
+check('훈련·테스트 구분 범례', split.includes('채운 모양') && split.includes('빈 모양'));
+check('k별 정확도 표', split.includes('k 값에 따른 정확도'));
+
+const overfit = render(
+  '3-2 과적합',
+  <SplitLabScreen screen="overfit" mode="free" onModeChange={noop} teacherMode={false} />,
+);
+check('교과서 쪽수', overfit.includes('95쪽'));
+check('두 선 범례', overfit.includes('훈련 데이터 정확도') && overfit.includes('테스트 데이터 정확도'));
+check('최적 k 안내', overfit.includes('테스트 정확도가 가장 높았던 값'));
+
+const reg = render('3-3 선형 회귀', <RegressionScreen mode="free" onModeChange={noop} teacherMode={false} />);
+check('교과서 쪽수', reg.includes('96~103쪽'));
+check('네 가지 지표', ['MSE', 'MAE', 'RMSE', 'R²'].every((m) => reg.includes(m)));
+check('편집 모드 4개', ['보기만', '점 추가', '점 이동', '점 삭제'].every((m) => reg.includes(m)));
+check('이상치 넣기 버튼', reg.includes('이상치 하나 넣기'));
+check('기준값 저장 버튼', reg.includes('지금 값을 기준으로 저장'));
+check('회귀식 표시', reg.includes('허리둘레 ='));
+check('다중 회귀 절', reg.includes('다중 선형 회귀'));
+check('회귀계수 표', reg.includes('회귀계수'));
+
+const regTeacher = render(
+  '3-3 (교사용 보기)',
+  <RegressionScreen mode="free" onModeChange={noop} teacherMode />,
+);
+check('교사용 예시 답안', regTeacher.includes('예시 답안'));
+check('R² 오해 바로잡기', regTeacher.includes('맞혔다'));
+check('심화 질문', regTeacher.includes('절편만 움직입니다'));
+
+const overfitTeacher = render(
+  '3-2 (교사용 보기)',
+  <SplitLabScreen screen="overfit" mode="free" onModeChange={noop} teacherMode />,
+);
+check('k=1 정확도 안내', overfitTeacher.includes('99.6%'));
+
+console.log(`\n${'═'.repeat(64)}`);
+console.log(`MVP 1+2+3 최종 · 통과 ${pass}개 · 실패 ${fail}개`);
 console.log('═'.repeat(64));

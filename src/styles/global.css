@@ -958,3 +958,24 @@ tr.is-best td {
   border-radius:5px;padding:3px 10px;color:var(--ink2);
 }
 .vote-chip strong{color:var(--accent)}
+
+/* ── 회귀 실험실 ───────────────────────────────────────────── */
+.metric-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}
+.metric-cards--four{grid-template-columns:repeat(2,minmax(0,1fr))}
+.metric-card{
+  background:var(--card);border:1px solid var(--rule);border-radius:6px;
+  padding:9px 11px;display:flex;flex-direction:column;gap:1px;
+}
+.metric-card--test{border-color:var(--accent-line);background:var(--accent-soft)}
+.metric-card__label{font-size:11.5px;color:var(--ink3);font-weight:650}
+.metric-card__value{font-family:var(--mono);font-size:17px;font-weight:700;color:var(--ink)}
+.metric-card__delta{font-family:var(--mono);font-size:12px;font-weight:700}
+.metric-card__delta.is-good{color:var(--accent)}
+.metric-card__delta.is-bad{color:var(--signal)}
+
+.mono-box{
+  font-family:var(--mono);font-size:13px;line-height:1.55;margin:0;
+  background:#F4F7F6;border:1px solid var(--rule);border-radius:6px;padding:9px 11px;color:var(--ink);
+}
+.check-group{display:flex;gap:18px;flex-wrap:wrap}
+.check-group .check-row{padding:4px 0}
