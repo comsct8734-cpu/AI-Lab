@@ -999,3 +999,9 @@ table.confusion th[scope='row']{
 }
 .confusion__cell{text-align:center;transition:background .12s ease}
 .wrong-cell{color:var(--signal);font-weight:700}
+
+/* ── 군집 실험실 ───────────────────────────────────────────── */
+.cluster-dot{
+  display:inline-block;width:10px;height:10px;border-radius:50%;
+  margin-right:7px;vertical-align:-1px;
+}

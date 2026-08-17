@@ -32,6 +32,11 @@ export const CLASSIFY_SCREENS: ScreenInfo[] = [
   { id: 'compare', no: '4-3', name: '모델 비교실', textbook: '106, 115쪽' },
 ];
 
+export const CLUSTER_SCREENS: ScreenInfo[] = [
+  { id: 'kmeans', no: '5-1', name: 'k-평균 군집', textbook: '118~122쪽' },
+  { id: 'silhouette', no: '5-2', name: '군집 개수 정하기', textbook: '123~124쪽' },
+];
+
 export const SEARCH_SCREENS: ScreenInfo[] = [
   { id: 'problem-tree', no: '1-1', name: '문제를 트리로 표현하기', textbook: '27~29쪽' },
   { id: 'bfs', no: '1-2', name: '너비 우선 탐색', textbook: '30~31쪽' },
@@ -53,13 +58,15 @@ const UNITS: Unit[] = [
   { id: 'data', unit: 'Ⅱ-01', name: '데이터 실험실', pages: '67~81, 108쪽', count: 4, ready: true },
   { id: 'regression', unit: 'Ⅱ-02', name: '회귀 실험실', pages: '94~103쪽', count: 3, ready: true },
   { id: 'classify', unit: 'Ⅱ-02', name: '분류 실험실', pages: '106~117쪽', count: 3, ready: true },
-  { id: 'cluster', unit: 'Ⅱ-02', name: '군집 실험실', pages: '118~124쪽', count: 2, ready: false },
+  { id: 'cluster', unit: 'Ⅱ-02', name: '군집 실험실', pages: '118~124쪽', count: 2, ready: true },
   { id: 'neural', unit: 'Ⅱ-03', name: '신경망 실험실', pages: '126~142쪽', count: 3, ready: false },
 ];
 
 /** '발견한 사실'까지 연 실험을 완료로 본다 */
 function isDone(screenId: string): boolean {
-  const key = CLASSIFY_SCREENS.some((s) => s.id === screenId)
+  const key = CLUSTER_SCREENS.some((s) => s.id === screenId)
+    ? `clu-${screenId}`
+    : CLASSIFY_SCREENS.some((s) => s.id === screenId)
     ? `cls-${screenId}`
     : REGRESSION_SCREENS.some((s) => s.id === screenId)
     ? `reg-${screenId === 'regression' ? 'linear' : screenId}`
@@ -80,12 +87,14 @@ export function Home({ onOpen }: Props) {
   const dataDone = DATA_SCREENS.filter((s) => isDone(s.id)).length;
   const regDone = REGRESSION_SCREENS.filter((s) => isDone(s.id)).length;
   const clsDone = CLASSIFY_SCREENS.filter((s) => isDone(s.id)).length;
+  const cluDone = CLUSTER_SCREENS.filter((s) => isDone(s.id)).length;
   const last = load<string | null>('last-screen', null);
   const lastInfo = [
     ...SEARCH_SCREENS,
     ...DATA_SCREENS,
     ...REGRESSION_SCREENS,
     ...CLASSIFY_SCREENS,
+    ...CLUSTER_SCREENS,
   ].find(
     (s) => s.id === last,
   );
@@ -107,7 +116,9 @@ export function Home({ onOpen }: Props) {
                   ? regDone
                   : u.id === 'classify'
                     ? clsDone
-                    : 0;
+                    : u.id === 'cluster'
+                      ? cluDone
+                      : 0;
           return (
             <button
               key={u.id}
@@ -123,7 +134,9 @@ export function Home({ onOpen }: Props) {
                       ? REGRESSION_SCREENS[0].id
                       : u.id === 'classify'
                         ? CLASSIFY_SCREENS[0].id
-                        : SEARCH_SCREENS[0].id,
+                        : u.id === 'cluster'
+                          ? CLUSTER_SCREENS[0].id
+                          : SEARCH_SCREENS[0].id,
                 )
               }
             >
@@ -166,6 +179,24 @@ export function Home({ onOpen }: Props) {
       </p>
       <div className="screen-list">
         {DATA_SCREENS.map((s) => (
+          <button key={s.id} type="button" className="screen-item" onClick={() => onOpen(s.id)}>
+            <span className="screen-item__no">{s.no}</span>
+            <span>
+              {s.name}
+              <br />
+              <span className="muted">교과서 {s.textbook}</span>
+            </span>
+            {isDone(s.id) && <span className="screen-item__done">완료</span>}
+          </button>
+        ))}
+      </div>
+
+      <h2 style={{ marginTop: 32 }}>군집 실험실 — 실험 2개</h2>
+      <p className="muted" style={{ marginTop: -6 }}>
+        정답이 주어지지 않은 학습입니다. 교과서 119쪽의 여섯 단계를 한 단계씩 볼 수 있습니다.
+      </p>
+      <div className="screen-list">
+        {CLUSTER_SCREENS.map((s) => (
           <button key={s.id} type="button" className="screen-item" onClick={() => onOpen(s.id)}>
             <span className="screen-item__no">{s.no}</span>
             <span>

@@ -2,12 +2,17 @@ import { useEffect, useState } from 'react';
 import { AppShell, type NavItem } from './ui/AppShell';
 import {
   CLASSIFY_SCREENS,
+  CLUSTER_SCREENS,
   DATA_SCREENS,
   Home,
   REGRESSION_SCREENS,
   SEARCH_SCREENS,
 } from './experiments/Home';
 import { TreeScreen } from './experiments/classify/TreeScreen';
+import {
+  ClusterLabScreen,
+  type ClusterScreenId,
+} from './experiments/cluster/ClusterLabScreen';
 import {
   ClassifyLabScreen,
   type ClassifyScreenId,
@@ -35,11 +40,13 @@ const VALID = new Set([
   ...DATA_SCREENS.map((s) => s.id),
   ...REGRESSION_SCREENS.map((s) => s.id),
   ...CLASSIFY_SCREENS.map((s) => s.id),
+  ...CLUSTER_SCREENS.map((s) => s.id),
 ]);
 
 const DATA_IDS = new Set(DATA_SCREENS.map((s) => s.id));
 const REG_IDS = new Set(REGRESSION_SCREENS.map((s) => s.id));
 const CLS_IDS = new Set(CLASSIFY_SCREENS.map((s) => s.id));
+const CLU_IDS = new Set(CLUSTER_SCREENS.map((s) => s.id));
 
 function readHash(): string {
   const h = window.location.hash.replace(/^#\/?/, '');
@@ -84,23 +91,35 @@ export default function App() {
     { id: 'data', label: '데이터', enabled: true },
     { id: 'regression', label: '회귀', enabled: true },
     { id: 'classify', label: '분류', enabled: true },
-    { id: 'cluster', label: '군집', enabled: false },
+    { id: 'cluster', label: '군집', enabled: true },
     { id: 'neural', label: '신경망', enabled: false },
   ];
 
   const currentUnit =
     screen === 'home'
       ? null
-      : CLS_IDS.has(screen)
-        ? 'classify'
-        : REG_IDS.has(screen)
-          ? 'regression'
-          : DATA_IDS.has(screen)
-            ? 'data'
-            : 'search';
+      : CLU_IDS.has(screen)
+        ? 'cluster'
+        : CLS_IDS.has(screen)
+          ? 'classify'
+          : REG_IDS.has(screen)
+            ? 'regression'
+            : DATA_IDS.has(screen)
+              ? 'data'
+              : 'search';
 
   const body = () => {
     if (screen === 'home') return <Home onOpen={go} />;
+    if (CLU_IDS.has(screen))
+      return (
+        <ClusterLabScreen
+          key={screen}
+          screen={screen as ClusterScreenId}
+          mode={mode}
+          onModeChange={setMode}
+          teacherMode={teacherMode}
+        />
+      );
     if (screen === 'tree')
       return <TreeScreen mode={mode} onModeChange={setMode} teacherMode={teacherMode} />;
     if (CLS_IDS.has(screen))
@@ -164,7 +183,9 @@ export default function App() {
               ? REGRESSION_SCREENS[0].id
               : unit === 'classify'
                 ? CLASSIFY_SCREENS[0].id
-                : SEARCH_SCREENS[0].id,
+                : unit === 'cluster'
+                  ? CLUSTER_SCREENS[0].id
+                  : SEARCH_SCREENS[0].id,
         )
       }
       onHome={() => go('home')}
@@ -178,7 +199,9 @@ export default function App() {
           <section className="section-card">
             <h2>다른 실험으로 이동</h2>
             <div className="screen-list">
-              {(CLS_IDS.has(screen)
+              {(CLU_IDS.has(screen)
+                ? CLUSTER_SCREENS
+                : CLS_IDS.has(screen)
                 ? CLASSIFY_SCREENS
                 : REG_IDS.has(screen)
                   ? REGRESSION_SCREENS

@@ -9,14 +9,16 @@
     "preview": "vite preview",
     "verify": "tsx src/core/search/verify.ts",
     "smoke": "tsx --tsconfig tsconfig.app.json src/smoke.tsx",
-    "check": "npm run verify && npm run verify:data && npm run verify:reg && npm run verify:cls && npm run gate && npm run smoke && npm run build",
+    "check": "npm run verify && npm run verify:data && npm run verify:reg && npm run verify:cls && npm run verify:clu && npm run gate && npm run smoke && npm run build",
     "lint": "oxlint",
     "gate": "tsx src/gate.test.ts",
     "data": "tsx src/data/generate/penguins.ts",
     "verify:data": "tsx src/core/verifyData.ts",
     "data:body": "tsx src/data/generate/body.ts",
     "verify:reg": "tsx src/core/verifyRegression.ts",
-    "verify:cls": "tsx src/core/verifyClassify.ts"
+    "verify:cls": "tsx src/core/verifyClassify.ts",
+    "data:cluster": "tsx src/data/generate/cluster.ts",
+    "verify:clu": "tsx src/core/verifyCluster.ts"
   },
   "dependencies": {
     "react": "^19.2.8",

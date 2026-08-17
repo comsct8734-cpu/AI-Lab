@@ -14,6 +14,7 @@ import { SplitLabScreen } from './experiments/regression/SplitLabScreen';
 import { RegressionScreen } from './experiments/regression/RegressionScreen';
 import { TreeScreen } from './experiments/classify/TreeScreen';
 import { ClassifyLabScreen } from './experiments/classify/ClassifyLabScreen';
+import { ClusterLabScreen } from './experiments/cluster/ClusterLabScreen';
 
 let pass = 0;
 let fail = 0;
@@ -293,4 +294,50 @@ check('계단 모양 예시 답안', treeTeacher.includes('축과 나란한 계�
 
 console.log(`\n${'═'.repeat(64)}`);
 console.log(`MVP 1~4 최종 · 통과 ${pass}개 · 실패 ${fail}개`);
+console.log('═'.repeat(64));
+
+/* ── MVP 5 군집 실험실 ────────────────────────────────────── */
+console.log('\nMVP 5 · 군집 실험실');
+console.log('─'.repeat(64));
+
+const kmeans = render(
+  '5-1 k-평균 군집',
+  <ClusterLabScreen screen="kmeans" mode="free" onModeChange={noop} teacherMode={false} />,
+);
+check('교과서 쪽수', kmeans.includes('118~122쪽'));
+check('단계 실행 버튼', kmeans.includes('한 단계 실행') && kmeans.includes('자동 실행'));
+check('되돌리기 버튼', kmeans.includes('한 단계 뒤로'));
+check('초기 중심점 다시 뽑기', kmeans.includes('초기 중심점 다시 뽑기'));
+check('중심점 이동 경로 설정', kmeans.includes('중심점 이동 경로'));
+check('교과서 STEP 표기', kmeans.includes('STEP 1'));
+check('타깃 없음 안내', kmeans.includes('비지도 학습'));
+check('초기 중심점 비교표', kmeans.includes('초기 중심점을 바꾸면 결과가 달라질까'));
+check('두 데이터 선택', kmeans.includes('쇼핑몰 고객') && kmeans.includes('카페 음료'));
+
+const silhouette = render(
+  '5-2 군집 개수 정하기',
+  <ClusterLabScreen screen="silhouette" mode="free" onModeChange={noop} teacherMode={false} />,
+);
+check('교과서 쪽수', silhouette.includes('123~124쪽'));
+check('실루엣 막대그래프', silhouette.includes('군집 개수에 따른 실루엣 점수'));
+check('가장 높은 k 표시', silhouette.includes('가장 높음'));
+check('단계별 표', silhouette.includes('단계별로 무슨 일이 일어났나'));
+
+const cluTeacher = render(
+  '5-2 (교사용 보기)',
+  <ClusterLabScreen screen="silhouette" mode="free" onModeChange={noop} teacherMode />,
+);
+check('교사용 예시 답안', cluTeacher.includes('예시 답안'));
+check('정답 없음 오개념', cluTeacher.includes('군집 결과에는 정답이 있다') || cluTeacher.includes('참고 자료일 뿐'));
+check('합성 데이터 안내', cluTeacher.includes('눈에 보이는 덩어리의 수'));
+
+const kmTeacher = render(
+  '5-1 (교사용 보기)',
+  <ClusterLabScreen screen="kmeans" mode="free" onModeChange={noop} teacherMode />,
+);
+check('초기 중심점 예시 답안', kmTeacher.includes('달라질 수 있다'));
+check('빈 군집 심화 질문', kmTeacher.includes('빈 군집'));
+
+console.log(`\n${'═'.repeat(64)}`);
+console.log(`MVP 1~5 최종 · 통과 ${pass}개 · 실패 ${fail}개`);
 console.log('═'.repeat(64));
