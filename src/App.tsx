@@ -1,6 +1,17 @@
 import { useEffect, useState } from 'react';
 import { AppShell, type NavItem } from './ui/AppShell';
-import { DATA_SCREENS, Home, REGRESSION_SCREENS, SEARCH_SCREENS } from './experiments/Home';
+import {
+  CLASSIFY_SCREENS,
+  DATA_SCREENS,
+  Home,
+  REGRESSION_SCREENS,
+  SEARCH_SCREENS,
+} from './experiments/Home';
+import { TreeScreen } from './experiments/classify/TreeScreen';
+import {
+  ClassifyLabScreen,
+  type ClassifyScreenId,
+} from './experiments/classify/ClassifyLabScreen';
 import { SplitLabScreen, type SplitScreenId } from './experiments/regression/SplitLabScreen';
 import { RegressionScreen } from './experiments/regression/RegressionScreen';
 import { DataLabScreen, type DataScreen } from './experiments/data/DataLabScreen';
@@ -23,10 +34,12 @@ const VALID = new Set([
   ...SEARCH_SCREENS.map((s) => s.id),
   ...DATA_SCREENS.map((s) => s.id),
   ...REGRESSION_SCREENS.map((s) => s.id),
+  ...CLASSIFY_SCREENS.map((s) => s.id),
 ]);
 
 const DATA_IDS = new Set(DATA_SCREENS.map((s) => s.id));
 const REG_IDS = new Set(REGRESSION_SCREENS.map((s) => s.id));
+const CLS_IDS = new Set(CLASSIFY_SCREENS.map((s) => s.id));
 
 function readHash(): string {
   const h = window.location.hash.replace(/^#\/?/, '');
@@ -70,7 +83,7 @@ export default function App() {
     { id: 'search', label: '탐색', enabled: true },
     { id: 'data', label: '데이터', enabled: true },
     { id: 'regression', label: '회귀', enabled: true },
-    { id: 'classify', label: '분류', enabled: false },
+    { id: 'classify', label: '분류', enabled: true },
     { id: 'cluster', label: '군집', enabled: false },
     { id: 'neural', label: '신경망', enabled: false },
   ];
@@ -78,14 +91,28 @@ export default function App() {
   const currentUnit =
     screen === 'home'
       ? null
-      : REG_IDS.has(screen)
-        ? 'regression'
-        : DATA_IDS.has(screen)
-          ? 'data'
-          : 'search';
+      : CLS_IDS.has(screen)
+        ? 'classify'
+        : REG_IDS.has(screen)
+          ? 'regression'
+          : DATA_IDS.has(screen)
+            ? 'data'
+            : 'search';
 
   const body = () => {
     if (screen === 'home') return <Home onOpen={go} />;
+    if (screen === 'tree')
+      return <TreeScreen mode={mode} onModeChange={setMode} teacherMode={teacherMode} />;
+    if (CLS_IDS.has(screen))
+      return (
+        <ClassifyLabScreen
+          key={screen}
+          screen={screen as ClassifyScreenId}
+          mode={mode}
+          onModeChange={setMode}
+          teacherMode={teacherMode}
+        />
+      );
     if (screen === 'regression')
       return <RegressionScreen mode={mode} onModeChange={setMode} teacherMode={teacherMode} />;
     if (REG_IDS.has(screen))
@@ -135,7 +162,9 @@ export default function App() {
             ? DATA_SCREENS[0].id
             : unit === 'regression'
               ? REGRESSION_SCREENS[0].id
-              : SEARCH_SCREENS[0].id,
+              : unit === 'classify'
+                ? CLASSIFY_SCREENS[0].id
+                : SEARCH_SCREENS[0].id,
         )
       }
       onHome={() => go('home')}
@@ -149,11 +178,13 @@ export default function App() {
           <section className="section-card">
             <h2>다른 실험으로 이동</h2>
             <div className="screen-list">
-              {(REG_IDS.has(screen)
-                ? REGRESSION_SCREENS
-                : DATA_IDS.has(screen)
-                  ? DATA_SCREENS
-                  : SEARCH_SCREENS
+              {(CLS_IDS.has(screen)
+                ? CLASSIFY_SCREENS
+                : REG_IDS.has(screen)
+                  ? REGRESSION_SCREENS
+                  : DATA_IDS.has(screen)
+                    ? DATA_SCREENS
+                    : SEARCH_SCREENS
               ).map((s) => (
                 <button
                   key={s.id}

@@ -12,6 +12,8 @@ import { DataLabScreen } from './experiments/data/DataLabScreen';
 import { KnnScreen } from './experiments/data/KnnScreen';
 import { SplitLabScreen } from './experiments/regression/SplitLabScreen';
 import { RegressionScreen } from './experiments/regression/RegressionScreen';
+import { TreeScreen } from './experiments/classify/TreeScreen';
+import { ClassifyLabScreen } from './experiments/classify/ClassifyLabScreen';
 
 let pass = 0;
 let fail = 0;
@@ -241,4 +243,54 @@ check('k=1 정확도 안내', overfitTeacher.includes('99.6%'));
 
 console.log(`\n${'═'.repeat(64)}`);
 console.log(`MVP 1+2+3 최종 · 통과 ${pass}개 · 실패 ${fail}개`);
+console.log('═'.repeat(64));
+
+/* ── MVP 4 분류 실험실 ────────────────────────────────────── */
+console.log('\nMVP 4 · 분류 실험실');
+console.log('─'.repeat(64));
+
+const dtree = render('4-1 결정트리', <TreeScreen mode="free" onModeChange={noop} teacherMode={false} />);
+check('교과서 쪽수', dtree.includes('107, 112쪽'));
+check('최대 깊이 조절', dtree.includes('최대 깊이'));
+check('지니 계수 표시', dtree.includes('지니'));
+check('트리 다이어그램', dtree.includes('결정트리 구조'));
+check('예/아니오 가지', dtree.includes('아니오'));
+check('깊이별 비교표', dtree.includes('깊이를 바꾸면 어떻게 달라질까'));
+check('정규화 불필요 안내', dtree.includes('정규화가 필요 없습니다'));
+
+const logistic = render(
+  '4-2 로지스틱 회귀',
+  <ClassifyLabScreen screen="logistic" mode="free" onModeChange={noop} teacherMode={false} />,
+);
+check('교과서 쪽수', logistic.includes('114쪽'));
+check('확률 안내', logistic.includes('확률'));
+check('혼동 행렬', logistic.includes('혼동 행렬'));
+check('정밀도와 재현율', logistic.includes('정밀도') && logistic.includes('재현율'));
+
+const compare = render(
+  '4-3 모델 비교실',
+  <ClassifyLabScreen screen="compare" mode="free" onModeChange={noop} teacherMode={false} />,
+);
+check('교과서 쪽수', compare.includes('106, 115쪽'));
+check('세 모델 이름', ['최근접 이웃', '결정트리', '로지스틱 회귀'].every((m) => compare.includes(m)));
+check('판단이 갈리는 데이터', compare.includes('판단이 갈리는 데이터'));
+check('종별 재현율 비교', compare.includes('세 모델의 종별 재현율'));
+check('k 와 깊이 동시 조절', compare.includes('최근접 이웃의 k') && compare.includes('결정트리의 최대 깊이'));
+
+const clsTeacher = render(
+  '4-3 (교사용 보기)',
+  <ClassifyLabScreen screen="compare" mode="free" onModeChange={noop} teacherMode />,
+);
+check('교사용 예시 답안', clsTeacher.includes('예시 답안'));
+check('정밀도·재현율 예시 답안', clsTeacher.includes('재현율이 더 중요한 경우'));
+check('거리 기반 서술 안내', clsTeacher.includes('값의 범위에 영향을 받는 모델'));
+
+const treeTeacher = render(
+  '4-1 (교사용 보기)',
+  <TreeScreen mode="free" onModeChange={noop} teacherMode />,
+);
+check('계단 모양 예시 답안', treeTeacher.includes('축과 나란한 계단 모양'));
+
+console.log(`\n${'═'.repeat(64)}`);
+console.log(`MVP 1~4 최종 · 통과 ${pass}개 · 실패 ${fail}개`);
 console.log('═'.repeat(64));

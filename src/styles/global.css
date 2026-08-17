@@ -979,3 +979,23 @@ tr.is-best td {
 }
 .check-group{display:flex;gap:18px;flex-wrap:wrap}
 .check-group .check-row{padding:4px 0}
+
+/* ── 분류 실험실 ───────────────────────────────────────────── */
+.model-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:34px 12px 6px;
+}
+@media (max-width:1023px){.model-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:700px){.model-grid{grid-template-columns:1fr}}
+.model-cell h4{
+  margin:0 0 5px;font-size:13.5px;font-weight:700;display:flex;
+  justify-content:space-between;align-items:baseline;gap:8px;
+}
+.model-cell h4 span{
+  font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:700;
+}
+
+table.confusion th[scope='row']{
+  background:#F6F9F8;font-size:13px;font-weight:700;white-space:nowrap;
+}
+.confusion__cell{text-align:center;transition:background .12s ease}
+.wrong-cell{color:var(--signal);font-weight:700}
