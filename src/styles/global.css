@@ -208,17 +208,22 @@ button {
   white-space: nowrap;
 }
 
-/* 3분할 */
+/* 3분할
+   좌우 패널을 고정 px 로 두면, 브라우저를 확대했을 때
+   화면의 CSS 폭만 줄고 좌우 패널은 그대로여서 가운데 실험 화면만 작아진다.
+   (글자는 커지는데 그래프는 오히려 작아 보이는 현상)
+   그래서 세 열을 모두 비율로 잡고 최소 폭만 px 로 정한다.
+   이렇게 하면 확대·축소할 때 세 영역이 같은 비율로 함께 움직인다. */
 .exp-body {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr) 300px;
+  grid-template-columns: minmax(196px, 0.86fr) minmax(0, 3.1fr) minmax(214px, 1fr);
   gap: 14px;
   padding: 14px 16px;
   align-items: start;
 }
 @media (max-width: 1279px) {
   .exp-body {
-    grid-template-columns: 220px minmax(0, 1fr) 262px;
+    grid-template-columns: minmax(180px, 0.8fr) minmax(0, 2.9fr) minmax(200px, 0.98fr);
     gap: 12px;
     padding: 12px;
   }
@@ -226,10 +231,10 @@ button {
 /* 아이패드 가로 — 좌측을 서랍으로 접는다 */
 @media (max-width: 1023px) {
   .exp-body {
-    grid-template-columns: minmax(0, 1fr) 262px;
+    grid-template-columns: minmax(0, 3fr) minmax(200px, 1fr);
   }
   .exp-body.drawer-open {
-    grid-template-columns: 240px minmax(0, 1fr) 262px;
+    grid-template-columns: minmax(180px, 1fr) minmax(0, 2.6fr) minmax(200px, 1fr);
   }
   .pane--data.is-collapsed {
     display: none;
@@ -1005,3 +1010,4 @@ table.confusion th[scope='row']{
   display:inline-block;width:10px;height:10px;border-radius:50%;
   margin-right:7px;vertical-align:-1px;
 }
+.legend__item--dark{color:var(--ink)}

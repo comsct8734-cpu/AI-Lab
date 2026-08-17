@@ -341,3 +341,27 @@ check('빈 군집 심화 질문', kmTeacher.includes('빈 군집'));
 console.log(`\n${'═'.repeat(64)}`);
 console.log(`MVP 1~5 최종 · 통과 ${pass}개 · 실패 ${fail}개`);
 console.log('═'.repeat(64));
+
+/* ── 수정분 점검 (확대·강조·범례) ─────────────────────────── */
+console.log('\n수정분 점검');
+console.log('─'.repeat(64));
+
+const logi2 = renderToString(
+  <ClassifyLabScreen screen="logistic" mode="free" onModeChange={noop} teacherMode={false} />,
+);
+check('로지스틱 화면에 모델 선택 버튼 없음', !logi2.includes('혼동 행렬을 볼 모델'));
+check('로지스틱 화면에 범례 표시', logi2.includes('빈 모양') && logi2.includes('주황 테두리'));
+check('주황 테두리 뜻이 적혀 있는가', logi2.includes('잘못 분류한 테스트 데이터'));
+check('로지스틱 화면에 판단 갈림 토글 없음', !logi2.includes('판단이 갈리는 데이터]'));
+
+const cmp2 = renderToString(
+  <ClassifyLabScreen screen="compare" mode="free" onModeChange={noop} teacherMode={false} />,
+);
+check('비교실에 판단 갈림 토글', cmp2.includes('판단이 갈리는 데이터'));
+check('비교실에 모델 선택 버튼 있음', cmp2.includes('혼동 행렬을 볼 모델'));
+check('주황과 보라의 차이 설명', cmp2.includes('그 모델이 잘못 분류한 테스트 데이터'));
+check('비교실 범례', cmp2.includes('채운 모양'));
+
+console.log(`\n${'═'.repeat(64)}`);
+console.log(`MVP 1~5 + 수정분 최종 · 통과 ${pass}개 · 실패 ${fail}개`);
+console.log('═'.repeat(64));

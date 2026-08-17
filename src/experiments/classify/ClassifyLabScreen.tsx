@@ -78,8 +78,11 @@ export function ClassifyLabScreen({ screen, mode, onModeChange, teacherMode }: P
   const [k, setK] = usePersisted('cls:k', 5);
   const [depth, setDepth] = usePersisted('cls:depth', 3);
   const [probe, setProbe] = useState<{ x: number; y: number } | null>(null);
-  const [cmModel, setCmModel] = useState<ModelId>('logistic');
+  const [cmModelRaw, setCmModel] = useState<ModelId>('logistic');
+  // 로지스틱 화면에는 그 모델의 그래프만 있으므로 혼동 행렬도 로지스틱으로 고정한다.
+  const cmModel: ModelId = screen === 'logistic' ? 'logistic' : cmModelRaw;
   const [cmCell, setCmCell] = useState<{ a: number; p: number } | null>(null);
+  const [showDisagree, setShowDisagree] = usePersisted('cls:disagree', false);
 
   const { rows } = useMemo(() => runPipeline(pipeline), [pipeline]);
   const clean = useMemo(() => completeRows(rows), [rows]);
@@ -295,6 +298,42 @@ export function ClassifyLabScreen({ screen, mode, onModeChange, teacherMode }: P
                 const st = SPECIES_STYLE[p.label] ?? { color: '#7e8b87', shape: 'circle' as const };
                 return <path key={i} d={shapePath(st.shape, sx(p.x), sy(p.y), 3.4)} fill={st.color} fillOpacity={0.85} />;
               })}
+
+              {/* 테스트 데이터는 속이 빈 모양으로 구분한다 */}
+              {split.test.map((p, i) => {
+                const st = SPECIES_STYLE[p.label] ?? { color: '#7e8b87', shape: 'circle' as const };
+                const isWrong = results.logistic.pred[i] !== p.label;
+                return (
+                  <g key={`te${i}`}>
+                    {isWrong && (
+                      <circle cx={sx(p.x)} cy={sy(p.y)} r={8} fill="none" stroke="#a0481c" strokeWidth={2.2} />
+                    )}
+                    <path
+                      d={shapePath(st.shape, sx(p.x), sy(p.y), 4.2)}
+                      fill="#ffffff"
+                      stroke={st.color}
+                      strokeWidth={1.8}
+                    />
+                  </g>
+                );
+              })}
+
+              {/* 혼동 행렬에서 고른 칸에 해당하는 데이터를 강조한다 */}
+              {cmCell &&
+                split.test.map((p, i) =>
+                  p.label === LABELS[cmCell.a] && results.logistic.pred[i] === LABELS[cmCell.p] ? (
+                    <circle
+                      key={`hl${i}`}
+                      cx={sx(p.x)}
+                      cy={sy(p.y)}
+                      r={12}
+                      fill="none"
+                      stroke="#14201d"
+                      strokeWidth={2.6}
+                    />
+                  ) : null,
+                )}
+
               {probe && (
                 <g>
                   <circle cx={sx(probe.x)} cy={sy(probe.y)} r={9} fill="#14201d" />
@@ -316,8 +355,15 @@ export function ClassifyLabScreen({ screen, mode, onModeChange, teacherMode }: P
                   bounds={bounds}
                   points={split.train}
                   wrong={split.test.filter((p, i) => results[id].pred[i] !== p.label)}
-                  highlight={cmCell ? split.test.filter((p, i) =>
-                    p.label === LABELS[cmCell.a] && results[id].pred[i] === LABELS[cmCell.p]) : []}
+                  highlight={
+                    cmCell
+                      ? split.test.filter(
+                          (p, i) =>
+                            p.label === LABELS[cmCell.a] && results[id].pred[i] === LABELS[cmCell.p],
+                        )
+                      : []
+                  }
+                  disagree={showDisagree ? disagreements.map((d) => d.point) : []}
                 />
               </div>
             ))}
@@ -325,6 +371,23 @@ export function ClassifyLabScreen({ screen, mode, onModeChange, teacherMode }: P
         )}
 
         <SpeciesLegend />
+        <div className="legend legend--extra">
+          <span className="legend__item">채운 모양 · 훈련 데이터</span>
+          <span className="legend__item">빈 모양 · 테스트 데이터</span>
+          <span className="legend__item legend__item--warn">
+            주황 테두리 · 그 모델이 잘못 분류한 테스트 데이터
+          </span>
+          {screen === 'compare' && showDisagree && (
+            <span className="legend__item legend__item--dark">
+              보라 점선 · 세 모델의 판단이 갈리는 데이터
+            </span>
+          )}
+          {cmCell && (
+            <span className="legend__item legend__item--dark">
+              검은 테두리 · 혼동 행렬에서 고른 칸의 데이터
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="stage-summary">
@@ -354,7 +417,8 @@ export function ClassifyLabScreen({ screen, mode, onModeChange, teacherMode }: P
             </div>
             <div className="stage-summary__stat">
               결정 영역의 모양을 비교해 보세요. 결정트리는 계단 모양, 로지스틱 회귀는 곧은 직선,
-              최근접 이웃은 들쭉날쭉합니다.
+              최근접 이웃은 들쭉날쭉합니다. 오른쪽에서 [판단이 갈리는 데이터 표시]를 켜면 그
+              데이터들이 보라색 점선으로 나타납니다.
             </div>
           </>
         )}
@@ -378,6 +442,22 @@ export function ClassifyLabScreen({ screen, mode, onModeChange, teacherMode }: P
         </>
       )}
 
+      {screen === 'compare' && (
+        <SettingRow
+          label="판단이 갈리는 데이터"
+          help="세 모델이 서로 다른 답을 낸 테스트 데이터를 보라색 점선으로 표시합니다. 잘못 분류한 데이터(주황 테두리)와는 다른 것입니다."
+        >
+          <div className="segmented" role="group" aria-label="판단이 갈리는 데이터 표시">
+            <button type="button" className={!showDisagree ? 'is-on' : ''} onClick={() => setShowDisagree(false)}>
+              숨김
+            </button>
+            <button type="button" className={showDisagree ? 'is-on' : ''} onClick={() => setShowDisagree(true)}>
+              표시 ({disagreements.length}개)
+            </button>
+          </div>
+        </SettingRow>
+      )}
+
       <SettingRow label="정확도 비교">
         <ul className="field-list">
           {(['knn', 'tree', 'logistic'] as ModelId[]).map((id) => (
@@ -391,26 +471,28 @@ export function ClassifyLabScreen({ screen, mode, onModeChange, teacherMode }: P
         </ul>
       </SettingRow>
 
-      <SettingRow
-        label="혼동 행렬을 볼 모델"
-        help="어떤 데이터를 어떤 종으로 판단했는지 표로 보여 줍니다."
-      >
-        <div style={{ display: 'grid', gap: 5 }}>
-          {(['knn', 'tree', 'logistic'] as ModelId[]).map((id) => (
-            <button
-              key={id}
-              type="button"
-              className={`btn btn--wide${cmModel === id ? ' btn--primary' : ''}`}
-              onClick={() => {
-                setCmModel(id);
-                setCmCell(null);
-              }}
-            >
-              {MODEL_LABEL[id]}
-            </button>
-          ))}
-        </div>
-      </SettingRow>
+      {screen === 'compare' && (
+        <SettingRow
+          label="혼동 행렬을 볼 모델"
+          help="어떤 데이터를 어떤 종으로 판단했는지 표로 보여 줍니다. 표의 칸을 누르면 위 그래프에서 그 데이터가 검은 테두리로 강조됩니다."
+        >
+          <div style={{ display: 'grid', gap: 5 }}>
+            {(['knn', 'tree', 'logistic'] as ModelId[]).map((id) => (
+              <button
+                key={id}
+                type="button"
+                className={`btn btn--wide${cmModel === id ? ' btn--primary' : ''}`}
+                onClick={() => {
+                  setCmModel(id);
+                  setCmCell(null);
+                }}
+              >
+                {MODEL_LABEL[id]}
+              </button>
+            ))}
+          </div>
+        </SettingRow>
+      )}
 
       {screen === 'logistic' && (
         <div className="note">
@@ -477,6 +559,11 @@ export function ClassifyLabScreen({ screen, mode, onModeChange, teacherMode }: P
       {screen === 'compare' && (
         <section className="section-card">
           <h2>세 모델의 판단이 갈리는 데이터 {disagreements.length}개</h2>
+          <p className="muted">
+            오른쪽 설정의 <strong>[판단이 갈리는 데이터]</strong>를 켜면 위 그래프 세 곳에 보라색
+            점선으로 표시됩니다. 그래프의 <strong style={{ color: 'var(--signal)' }}>주황 테두리</strong>는
+            이것과 다른 것으로, <strong>그 모델이 잘못 분류한 테스트 데이터</strong>를 뜻합니다.
+          </p>
           {disagreements.length === 0 ? (
             <p className="muted">지금 설정에서는 세 모델의 판단이 모두 같습니다. 설정을 바꿔 보세요.</p>
           ) : (
@@ -669,12 +756,17 @@ function RegionCanvas({
   points,
   wrong,
   highlight,
+  disagree,
 }: {
   predict: (x: number, y: number) => string;
   bounds: { minX: number; maxX: number; minY: number; maxY: number };
   points: { x: number; y: number; label: string }[];
+  /** 이 모델이 잘못 분류한 테스트 데이터 — 주황 테두리 */
   wrong: { x: number; y: number; label: string }[];
+  /** 혼동 행렬에서 고른 칸의 데이터 — 검은 테두리 */
   highlight: { x: number; y: number; label: string }[];
+  /** 세 모델의 판단이 갈리는 데이터 — 보라 점선 */
+  disagree: { x: number; y: number; label: string }[];
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const CW = 300;
@@ -718,6 +810,18 @@ function RegionCanvas({
           const st = SPECIES_STYLE[p.label] ?? { color: '#7e8b87', shape: 'circle' as const };
           return <path key={i} d={shapePath(st.shape, sx(p.x), sy(p.y), 2.4)} fill={st.color} fillOpacity={0.8} />;
         })}
+        {disagree.map((p, i) => (
+          <circle
+            key={`d${i}`}
+            cx={sx(p.x)}
+            cy={sy(p.y)}
+            r={7.5}
+            fill="none"
+            stroke="#7b4fa8"
+            strokeWidth={2}
+            strokeDasharray="3 2"
+          />
+        ))}
         {wrong.map((p, i) => (
           <circle key={`w${i}`} cx={sx(p.x)} cy={sy(p.y)} r={5} fill="none" stroke="#a0481c" strokeWidth={2} />
         ))}
