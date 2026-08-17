@@ -348,12 +348,29 @@ export function ClassifyLabScreen({ screen, mode, onModeChange, teacherMode }: P
               <div key={id} className="model-cell">
                 <h4>
                   {MODEL_LABEL[id]}
+                  {id === cmModel && <em className="model-cell__tag">표를 보는 모델</em>}
                   <span>{(results[id].scores.accuracy * 100).toFixed(1)}%</span>
                 </h4>
+                {cmCell && (
+                  <p className="model-cell__count">
+                    이 모델이 그 칸에 넣은 데이터{' '}
+                    <strong>
+                      {
+                        split.test.filter(
+                          (p, i) =>
+                            p.label === LABELS[cmCell.a] &&
+                            results[id].pred[i] === LABELS[cmCell.p],
+                        ).length
+                      }
+                      개
+                    </strong>
+                  </p>
+                )}
                 <RegionCanvas
                   predict={predictWith[id]}
                   bounds={bounds}
                   points={split.train}
+                  test={split.test}
                   wrong={split.test.filter((p, i) => results[id].pred[i] !== p.label)}
                   highlight={
                     cmCell
@@ -513,8 +530,16 @@ export function ClassifyLabScreen({ screen, mode, onModeChange, teacherMode }: P
         <h2>혼동 행렬 — {MODEL_LABEL[cmModel]}</h2>
         <p>
           가로는 모델의 판단, 세로는 실제 종입니다. 대각선이 맞힌 것이고 나머지가 틀린 것입니다.
-          칸을 누르면 위 그래프에서 그 데이터들이 강조됩니다.
+          칸을 누르면 위 그래프에서 그 데이터들이 검은 테두리로 강조됩니다.
         </p>
+        {screen === 'compare' && (
+          <p className="muted">
+            표의 숫자는 <strong>{MODEL_LABEL[cmModel]}</strong>의 것입니다. 칸을 누르면 세 그래프에
+            모두 검은 테두리가 나타나는데, 이는 <strong>같은 칸에 각 모델이 어떤 데이터를
+            넣었는지 비교</strong>하기 위한 것입니다. 모델마다 그 칸에 넣은 데이터가 다르므로
+            강조되는 점도 다릅니다. 각 그래프 위에 모델별 개수를 함께 적어 두었습니다.
+          </p>
+        )}
         <ConfusionTable cm={cm} selected={cmCell} onSelect={setCmCell} />
         {cmCell && (
           <p className="muted">
@@ -754,13 +779,17 @@ function RegionCanvas({
   predict,
   bounds,
   points,
+  test,
   wrong,
   highlight,
   disagree,
 }: {
   predict: (x: number, y: number) => string;
   bounds: { minX: number; maxX: number; minY: number; maxY: number };
+  /** 훈련 데이터 — 채운 모양 */
   points: { x: number; y: number; label: string }[];
+  /** 테스트 데이터 — 빈 모양 */
+  test: { x: number; y: number; label: string }[];
   /** 이 모델이 잘못 분류한 테스트 데이터 — 주황 테두리 */
   wrong: { x: number; y: number; label: string }[];
   /** 혼동 행렬에서 고른 칸의 데이터 — 검은 테두리 */
@@ -809,6 +838,18 @@ function RegionCanvas({
         {points.map((p, i) => {
           const st = SPECIES_STYLE[p.label] ?? { color: '#7e8b87', shape: 'circle' as const };
           return <path key={i} d={shapePath(st.shape, sx(p.x), sy(p.y), 2.4)} fill={st.color} fillOpacity={0.8} />;
+        })}
+        {test.map((p, i) => {
+          const st = SPECIES_STYLE[p.label] ?? { color: '#7e8b87', shape: 'circle' as const };
+          return (
+            <path
+              key={`t${i}`}
+              d={shapePath(st.shape, sx(p.x), sy(p.y), 2.9)}
+              fill="#ffffff"
+              stroke={st.color}
+              strokeWidth={1.4}
+            />
+          );
         })}
         {disagree.map((p, i) => (
           <circle

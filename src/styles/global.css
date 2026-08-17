@@ -1011,3 +1011,12 @@ table.confusion th[scope='row']{
   margin-right:7px;vertical-align:-1px;
 }
 .legend__item--dark{color:var(--ink)}
+.model-cell__tag{
+  font-style:normal;font-size:10.5px;font-weight:700;color:var(--accent);
+  background:var(--accent-soft);border:1px solid var(--accent-line);
+  border-radius:4px;padding:1px 6px;margin-left:6px;
+}
+.model-cell__count{
+  margin:0 0 5px;font-size:12px;color:var(--ink2);
+}
+.model-cell__count strong{color:var(--ink);font-family:var(--mono)}

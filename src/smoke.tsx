@@ -365,3 +365,23 @@ check('비교실 범례', cmp2.includes('채운 모양'));
 console.log(`\n${'═'.repeat(64)}`);
 console.log(`MVP 1~5 + 수정분 최종 · 통과 ${pass}개 · 실패 ${fail}개`);
 console.log('═'.repeat(64));
+
+/* ── 비교실 테스트 데이터 · 강조 안내 점검 ────────────────── */
+console.log('\n비교실 수정분 점검');
+console.log('─'.repeat(64));
+
+const cmp3 = renderToString(
+  <ClassifyLabScreen screen="compare" mode="free" onModeChange={noop} teacherMode={false} />,
+);
+check('표를 보는 모델 표시', cmp3.includes('표를 보는 모델'));
+check('세 그래프 강조 이유 설명', cmp3.includes('같은 칸에 각 모델이 어떤 데이터를'));
+check('검은 테두리 안내', cmp3.includes('검은 테두리로 강조'));
+// 훈련 데이터와 테스트 데이터가 모두 그려지는가 (빈 모양은 흰색 채움 + 색 테두리)
+const filled = (cmp3.match(/fill-opacity="0.8"/g) ?? []).length;
+const hollow = (cmp3.match(/fill="#ffffff" stroke="#/g) ?? []).length;
+check('훈련 데이터가 그려지는가', filled > 0);
+check('테스트 데이터도 그려지는가', hollow > 0);
+
+console.log(`\n${'═'.repeat(64)}`);
+console.log(`전체 최종 · 통과 ${pass}개 · 실패 ${fail}개`);
+console.log('═'.repeat(64));
